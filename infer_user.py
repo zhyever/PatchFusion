@@ -36,7 +36,7 @@ import torch
 import torch.nn as nn
 import matplotlib.pyplot as plt
 import copy
-from zoedepth.utils.misc import generatemask, get_boundaries
+from zoedepth.utils.misc import get_boundaries
 from zoedepth.utils.misc import compute_metrics, RunningAverageDict
 from tqdm import tqdm
 import matplotlib
@@ -69,6 +69,7 @@ def load_state_dict(model, state_dict):
         state[k] = v
 
     model.load_state_dict(state, strict=True)
+    # model.load_state_dict(state, strict=False)
     print("Loaded successfully")
     return model
 
@@ -82,15 +83,6 @@ def load_ckpt(model, checkpoint):
     print("Loaded weights from {0}".format(checkpoint))
     return model
 
-class RunningAverageMap:
-    """A dictionary of running averages."""
-    def __init__(self, average_map):
-        self.average_map = average_map
-        self.count_map = torch.ones_like(average_map, device=average_map.device)
-
-    def update(self, pred_map, ct_map):
-        self.average_map = (pred_map + self.count_map * self.average_map) / (self.count_map + ct_map)
-        self.count_map = self.count_map + ct_map
 
 #### def dataset
 def read_image(path, dataset_name):
@@ -102,15 +94,6 @@ def read_image(path, dataset_name):
         if img.ndim == 2:
             img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB) / 255.0
-        
-        # height = 1840
-        # width = 2300
-        # _, h, w = img.shape
-        # h_start = int(h / 2 - height / 2)
-        # h_end = h_start + height
-        # w_start = int(w / 2 - width / 2)
-        # w_end = w_start + width
-        # img = img[:, h_start:h_end, w_start:w_end]
         
         img = F.interpolate(torch.tensor(img).unsqueeze(dim=0).permute(0, 3, 1, 2), IMG_RESOLUTION, mode='bicubic', align_corners=True)
         img = img.squeeze().permute(1, 2, 0)
@@ -127,13 +110,6 @@ def read_image(path, dataset_name):
         print(img.shape)
         img = F.interpolate(torch.tensor(img).unsqueeze(dim=0).permute(0, 3, 1, 2), IMG_RESOLUTION, mode='bicubic', align_corners=True)
         img = img.squeeze().permute(1, 2, 0)
-    
-    
-    # padding
-    # h, w, c = img.shape
-    # m = nn.ZeroPad2d(BOUNDARY)
-    # img = m(img.unsqueeze(dim=0).permute(0, 3, 1, 2))
-    # img = F.interpolate(img, IMG_RESOLUTION, mode='bicubic', align_corners=True).squeeze(dim=0).permute(1, 2, 0)
     return img
 
 class Images:
@@ -256,9 +232,54 @@ def crop(img, crop_bbox):
     img = img[:, :, crop_y1:crop_y2, crop_x1:crop_x2]
     return img, templete
 
+# def generatemask(size):
+#     # Generates a Guassian mask
+#     mask = np.zeros(size, dtype=np.float32)
+#     sigma = int(size[0]/16)
+#     k_size = int(2 * np.ceil(2 * int(size[0]/16)) + 1)
+#     mask[int(0.15*size[0]):size[0] - int(0.15*size[0]), int(0.15*size[1]): size[1] - int(0.15*size[1])] = 1
+#     mask = cv2.GaussianBlur(mask, (int(k_size), int(k_size)), sigma)
+#     mask = (mask - mask.min()) / (mask.max() - mask.min())
+#     mask = mask.astype(np.float32)
+#     return mask
+
+def generatemask(size):
+    # Generates a Guassian mask
+    mask = np.zeros(size, dtype=np.float32)
+    sigma = int(size[0]/16)
+    k_size = int(2 * np.ceil(2 * int(size[0]/16)) + 1)
+    mask[int(0.1*size[0]):size[0] - int(0.1*size[0]), int(0.1*size[1]): size[1] - int(0.1*size[1])] = 1
+    mask = cv2.GaussianBlur(mask, (int(k_size), int(k_size)), sigma)
+    mask = (mask - mask.min()) / (mask.max() - mask.min())
+    mask = mask.astype(np.float32)
+    return mask
+
+
+def generatemask_coarse(size):
+    # Generates a Guassian mask
+    mask = np.zeros(size, dtype=np.float32)
+    sigma = int(size[0]/64)
+    k_size = int(2 * np.ceil(2 * int(size[0]/64)) + 1)
+    mask[int(0.001*size[0]):size[0] - int(0.001*size[0]), int(0.001*size[1]): size[1] - int(0.001*size[1])] = 1
+    mask = cv2.GaussianBlur(mask, (int(k_size), int(k_size)), sigma)
+    mask = (mask - mask.min()) / (mask.max() - mask.min())
+    mask = mask.astype(np.float32)
+    return mask
+
+class RunningAverageMap:
+    """A dictionary of running averages."""
+    def __init__(self, average_map, count_map):
+        self.average_map = average_map
+        self.count_map = count_map
+        self.average_map = self.average_map / self.count_map
+
+    def update(self, pred_map, ct_map):
+        self.average_map = (pred_map + self.count_map * self.average_map) / (self.count_map + ct_map)
+        self.count_map = self.count_map + ct_map
+
 # default size [540, 960]
 # x_start, y_start = [0, 540, 1080, 1620], [0, 960, 1920, 2880]
-def regular_tile(model, image, offset_x=0, offset_y=0, img_lr=None, iter_pred=None, boundary=0, update=False, avg_depth_map=None):
+def regular_tile(model, image, offset_x=0, offset_y=0, img_lr=None, iter_pred=None, boundary=0, update=False, avg_depth_map=None, blr_mask=False):
     # crop size
     # height = 540
     # width = 960
@@ -308,8 +329,6 @@ def regular_tile(model, image, offset_x=0, offset_y=0, img_lr=None, iter_pred=No
 
     crop_areas = TRANSFORM(crop_areas)
     imgs_crop = TRANSFORM(imgs_crop)
-    
-
 
     imgs_crop = imgs_crop.cuda().float()
     bboxs_roi = bboxs_roi.cuda().float()
@@ -350,40 +369,204 @@ def regular_tile(model, image, offset_x=0, offset_y=0, img_lr=None, iter_pred=No
     init_flag = False
     if offset_x == 0 and offset_y == 0:
         init_flag = True
-        pred_depth = whole_depth_pred
+        # pred_depth = whole_depth_pred
+        pred_depth = torch.zeros(IMG_RESOLUTION, device=pred_depth_crops[inner_idx].device)
     else:
         iter_pred = iter_pred.squeeze()
         pred_depth = iter_pred
 
+    blur_mask = generatemask((height, width)) + 1e-3
+    count_map = torch.zeros(IMG_RESOLUTION, device=pred_depth_crops[inner_idx].device)
+
     for ii, x in enumerate(x_start):
         for jj, y in enumerate(y_start):
             if init_flag:
-                crop_temp = copy.deepcopy(whole_depth_pred[y: y+height, x: x+width])
-                blur_mask = torch.ones((height, width))
+                # pred_depth[y: y+height, x: x+width] = blur_mask * pred_depth_crops[inner_idx] + (1 - blur_mask) * crop_temp
+                # pred_depth[y: y+height, x: x+width] = blur_mask * pred_depth_crops[inner_idx] + (1 - blur_mask) * crop_temp
                 blur_mask = torch.tensor(blur_mask, device=whole_depth_pred.device)
-                pred_depth[y: y+height, x: x+width] = blur_mask * pred_depth_crops[inner_idx]+ (1 - blur_mask) * crop_temp
+                count_map[y: y+height, x: x+width] = blur_mask
+                pred_depth[y: y+height, x: x+width] = pred_depth_crops[inner_idx] * blur_mask
+
             else:
                 # ensemble with running mean
-                if boundary != 0:
+                if blr_mask:
+                    blur_mask = torch.tensor(blur_mask, device=whole_depth_pred.device)
                     count_map = torch.zeros(IMG_RESOLUTION, device=pred_depth_crops[inner_idx].device)
-                    count_map[y+boundary: y+height-boundary, x+boundary: x+width-boundary] = 1
+                    count_map[y: y+height, x: x+width] = blur_mask
                     pred_map = torch.zeros(IMG_RESOLUTION, device=pred_depth_crops[inner_idx].device)
-                    pred_map[y+boundary: y+height-boundary, x+boundary: x+width-boundary] = pred_depth_crops[inner_idx][boundary:-boundary, boundary:-boundary] 
+                    pred_map[y: y+height, x: x+width] = pred_depth_crops[inner_idx] * blur_mask
                     avg_depth_map.update(pred_map, count_map)
                 else:
-                    count_map = torch.zeros(IMG_RESOLUTION, device=pred_depth_crops[inner_idx].device)
-                    count_map[y: y+height, x: x+width] = 1
-                    pred_map = torch.zeros(IMG_RESOLUTION, device=pred_depth_crops[inner_idx].device)
-                    pred_map[y: y+height, x: x+width] = pred_depth_crops[inner_idx]
-                    avg_depth_map.update(pred_map, count_map)
+                    if boundary != 0:
+                        count_map = torch.zeros(IMG_RESOLUTION, device=pred_depth_crops[inner_idx].device)
+                        count_map[y+boundary: y+height-boundary, x+boundary: x+width-boundary] = 1
+                        pred_map = torch.zeros(IMG_RESOLUTION, device=pred_depth_crops[inner_idx].device)
+                        pred_map[y+boundary: y+height-boundary, x+boundary: x+width-boundary] = pred_depth_crops[inner_idx][boundary:-boundary, boundary:-boundary] 
+                        avg_depth_map.update(pred_map, count_map)
+                    else:
+                        count_map = torch.zeros(IMG_RESOLUTION, device=pred_depth_crops[inner_idx].device)
+                        count_map[y: y+height, x: x+width] = 1
+                        pred_map = torch.zeros(IMG_RESOLUTION, device=pred_depth_crops[inner_idx].device)
+                        pred_map[y: y+height, x: x+width] = pred_depth_crops[inner_idx]
+                        avg_depth_map.update(pred_map, count_map)
+
 
             inner_idx += 1
 
-    if avg_depth_map is None:
-        return pred_depth
+    if init_flag:
+        avg_depth_map = RunningAverageMap(pred_depth, count_map)
+        # blur_mask = generatemask_coarse(IMG_RESOLUTION)
+        # blur_mask = torch.tensor(blur_mask, device=whole_depth_pred.device)
+        # count_map = (1 - blur_mask)
+        # pred_map = whole_depth_pred * (1 - blur_mask)
+        # avg_depth_map.update(pred_map, count_map)
+        return avg_depth_map
+
+def regular_tile_param(model, image, offset_x=0, offset_y=0, img_lr=None, iter_pred=None, boundary=0, update=False, avg_depth_map=None, blr_mask=False, crop_size=None,
+    img_resolution=None, transform=None):
+    # crop size
+    # height = 540
+    # width = 960
+    height = crop_size[0]
+    width = crop_size[1]
+
+    assert offset_x >= 0 and offset_y >= 0
+    
+    tile_num_x = (img_resolution[1] - offset_x) // width
+    tile_num_y = (img_resolution[0] - offset_y) // height
+    x_start = [width * x + offset_x for x in range(tile_num_x)]
+    y_start = [height * y + offset_y for y in range(tile_num_y)]
+    imgs_crop = []
+    crop_areas = []
+    bboxs_roi = []
+    bboxs_raw = []
+
+    if iter_pred is not None:
+        iter_pred = iter_pred.unsqueeze(dim=0).unsqueeze(dim=0)
+
+    iter_priors = []
+    for x in x_start: # w
+        for y in y_start: # h
+            bbox = (int(y), int(y+height), int(x), int(x+width))
+            img_crop, crop_area = crop(image, bbox)
+            imgs_crop.append(img_crop)
+            crop_areas.append(crop_area)
+            crop_y1, crop_y2, crop_x1, crop_x2 = bbox
+            bbox_roi = torch.tensor([crop_x1 / img_resolution[1] * 512, crop_y1 / img_resolution[0] * 384, crop_x2 / img_resolution[1] * 512, crop_y2 / img_resolution[0] * 384])
+            bboxs_roi.append(bbox_roi)
+            bbox_raw = torch.tensor([crop_x1, crop_y1, crop_x2, crop_y2]) 
+            bboxs_raw.append(bbox_raw)
+
+            if iter_pred is not None:
+                iter_prior, _ = crop(iter_pred, bbox)
+                iter_priors.append(iter_prior)
+
+    crop_areas = torch.cat(crop_areas, dim=0)
+    imgs_crop = torch.cat(imgs_crop, dim=0)
+    bboxs_roi = torch.stack(bboxs_roi, dim=0)
+    bboxs_raw = torch.stack(bboxs_raw, dim=0)
+
+    if iter_pred is not None:
+        iter_priors = torch.cat(iter_priors, dim=0)
+        iter_priors = transform(iter_priors)
+        iter_priors = iter_priors.cuda().float()
+
+    crop_areas = transform(crop_areas)
+    imgs_crop = transform(imgs_crop)
+
+    imgs_crop = imgs_crop.cuda().float()
+    bboxs_roi = bboxs_roi.cuda().float()
+    crop_areas = crop_areas.cuda().float()
+    img_lr = img_lr.cuda().float()
+    
+    pred_depth_crops = []
+    with torch.no_grad():
+        for i, (img, bbox, crop_area) in enumerate(zip(imgs_crop, bboxs_roi, crop_areas)):
+
+            if iter_pred is not None:
+                iter_prior = iter_priors[i].unsqueeze(dim=0)
+            else:
+                iter_prior = None
+
+            if i == 0:
+                out_dict = model(img.unsqueeze(dim=0), mode='eval', image_raw=img_lr, bbox=bbox.unsqueeze(dim=0), crop_area=crop_area.unsqueeze(dim=0), iter_prior=iter_prior if update is True else None)
+                whole_depth_pred = out_dict['coarse_depth_pred']
+                # return whole_depth_pred.squeeze()
+                # pred_depth_crop = out_dict['fine_depth_pred']
+                pred_depth_crop = out_dict['metric_depth']
+            else:
+                pred_depth_crop = model(img.unsqueeze(dim=0), mode='eval', image_raw=img_lr, bbox=bbox.unsqueeze(dim=0), crop_area=crop_area.unsqueeze(dim=0), iter_prior=iter_prior if update is True else None)['metric_depth']
+                # pred_depth_crop = model(img.unsqueeze(dim=0), mode='eval', image_raw=img_lr, bbox=bbox.unsqueeze(dim=0), crop_area=crop_area.unsqueeze(dim=0), iter_prior=iter_prior if update is True else None)['fine_depth_pred']
 
 
-def random_tile(model, image, img_lr=None, iter_pred=None, boundary=0, update=False, avg_depth_map=None):
+            pred_depth_crop = nn.functional.interpolate(
+                pred_depth_crop, (height, width), mode='bilinear', align_corners=True)
+            # pred_depth_crop = nn.functional.interpolate(
+            #     pred_depth_crop, (height, width), mode='nearest')
+            pred_depth_crops.append(pred_depth_crop.squeeze())
+
+    whole_depth_pred = whole_depth_pred.squeeze()
+    whole_depth_pred = nn.functional.interpolate(whole_depth_pred.unsqueeze(dim=0).unsqueeze(dim=0), img_resolution, mode='bilinear', align_corners=True).squeeze()
+
+    ####### stich part
+    inner_idx = 0
+    init_flag = False
+    if offset_x == 0 and offset_y == 0:
+        init_flag = True
+        # pred_depth = whole_depth_pred
+        pred_depth = torch.zeros(img_resolution, device=pred_depth_crops[inner_idx].device)
+    else:
+        iter_pred = iter_pred.squeeze()
+        pred_depth = iter_pred
+
+    blur_mask = generatemask((height, width)) + 1e-3
+    count_map = torch.zeros(img_resolution, device=pred_depth_crops[inner_idx].device)
+
+    for ii, x in enumerate(x_start):
+        for jj, y in enumerate(y_start):
+            if init_flag:
+                # pred_depth[y: y+height, x: x+width] = blur_mask * pred_depth_crops[inner_idx] + (1 - blur_mask) * crop_temp
+                # pred_depth[y: y+height, x: x+width] = blur_mask * pred_depth_crops[inner_idx] + (1 - blur_mask) * crop_temp
+                blur_mask = torch.tensor(blur_mask, device=whole_depth_pred.device)
+                count_map[y: y+height, x: x+width] = blur_mask
+                pred_depth[y: y+height, x: x+width] = pred_depth_crops[inner_idx] * blur_mask
+
+            else:
+                # ensemble with running mean
+                if blr_mask:
+                    blur_mask = torch.tensor(blur_mask, device=whole_depth_pred.device)
+                    count_map = torch.zeros(img_resolution, device=pred_depth_crops[inner_idx].device)
+                    count_map[y: y+height, x: x+width] = blur_mask
+                    pred_map = torch.zeros(img_resolution, device=pred_depth_crops[inner_idx].device)
+                    pred_map[y: y+height, x: x+width] = pred_depth_crops[inner_idx] * blur_mask
+                    avg_depth_map.update(pred_map, count_map)
+                else:
+                    if boundary != 0:
+                        count_map = torch.zeros(img_resolution, device=pred_depth_crops[inner_idx].device)
+                        count_map[y+boundary: y+height-boundary, x+boundary: x+width-boundary] = 1
+                        pred_map = torch.zeros(img_resolution, device=pred_depth_crops[inner_idx].device)
+                        pred_map[y+boundary: y+height-boundary, x+boundary: x+width-boundary] = pred_depth_crops[inner_idx][boundary:-boundary, boundary:-boundary] 
+                        avg_depth_map.update(pred_map, count_map)
+                    else:
+                        count_map = torch.zeros(img_resolution, device=pred_depth_crops[inner_idx].device)
+                        count_map[y: y+height, x: x+width] = 1
+                        pred_map = torch.zeros(img_resolution, device=pred_depth_crops[inner_idx].device)
+                        pred_map[y: y+height, x: x+width] = pred_depth_crops[inner_idx]
+                        avg_depth_map.update(pred_map, count_map)
+
+
+            inner_idx += 1
+
+    if init_flag:
+        avg_depth_map = RunningAverageMap(pred_depth, count_map)
+        # blur_mask = generatemask_coarse(img_resolution)
+        # blur_mask = torch.tensor(blur_mask, device=whole_depth_pred.device)
+        # count_map = (1 - blur_mask)
+        # pred_map = whole_depth_pred * (1 - blur_mask)
+        # avg_depth_map.update(pred_map, count_map)
+        return avg_depth_map
+
+def random_tile(model, image, img_lr=None, iter_pred=None, boundary=0, update=False, avg_depth_map=None, blr_mask=False):
     height = CROP_SIZE[0]
     width = CROP_SIZE[1]
     
@@ -468,33 +651,167 @@ def random_tile(model, image, img_lr=None, iter_pred=None, boundary=0, update=Fa
     iter_pred = iter_pred.squeeze()
     pred_depth = iter_pred
 
+    blur_mask = generatemask((height, width)) + 1e-3
     for ii, x in enumerate(x_start):
         for jj, y in enumerate(y_start):
             if init_flag:
+                # wont be here
                 crop_temp = copy.deepcopy(whole_depth_pred[y: y+height, x: x+width])
                 blur_mask = torch.ones((height, width))
                 blur_mask = torch.tensor(blur_mask, device=whole_depth_pred.device)
                 pred_depth[y: y+height, x: x+width] = blur_mask * pred_depth_crops[inner_idx]+ (1 - blur_mask) * crop_temp
             else:
-                # ensemble with running mean
-                if boundary != 0:
+                if blr_mask:
+                    blur_mask = torch.tensor(blur_mask, device=whole_depth_pred.device)
                     count_map = torch.zeros(IMG_RESOLUTION, device=pred_depth_crops[inner_idx].device)
-                    count_map[y+boundary: y+height-boundary, x+boundary: x+width-boundary] = 1
+                    count_map[y: y+height, x: x+width] = blur_mask
                     pred_map = torch.zeros(IMG_RESOLUTION, device=pred_depth_crops[inner_idx].device)
-                    pred_map[y+boundary: y+height-boundary, x+boundary: x+width-boundary] = pred_depth_crops[inner_idx][boundary:-boundary, boundary:-boundary] 
+                    pred_map[y: y+height, x: x+width] = pred_depth_crops[inner_idx] * blur_mask
                     avg_depth_map.update(pred_map, count_map)
                 else:
-                    count_map = torch.zeros(IMG_RESOLUTION, device=pred_depth_crops[inner_idx].device)
-                    count_map[y: y+height, x: x+width] = 1
-                    pred_map = torch.zeros(IMG_RESOLUTION, device=pred_depth_crops[inner_idx].device)
-                    pred_map[y: y+height, x: x+width] = pred_depth_crops[inner_idx]
-                    avg_depth_map.update(pred_map, count_map)
+                    # ensemble with running mean
+                    if boundary != 0:
+                        count_map = torch.zeros(IMG_RESOLUTION, device=pred_depth_crops[inner_idx].device)
+                        count_map[y+boundary: y+height-boundary, x+boundary: x+width-boundary] = 1
+                        pred_map = torch.zeros(IMG_RESOLUTION, device=pred_depth_crops[inner_idx].device)
+                        pred_map[y+boundary: y+height-boundary, x+boundary: x+width-boundary] = pred_depth_crops[inner_idx][boundary:-boundary, boundary:-boundary] 
+                        avg_depth_map.update(pred_map, count_map)
+                    else:
+                        count_map = torch.zeros(IMG_RESOLUTION, device=pred_depth_crops[inner_idx].device)
+                        count_map[y: y+height, x: x+width] = 1
+                        pred_map = torch.zeros(IMG_RESOLUTION, device=pred_depth_crops[inner_idx].device)
+                        pred_map[y: y+height, x: x+width] = pred_depth_crops[inner_idx]
+                        avg_depth_map.update(pred_map, count_map)
 
             inner_idx += 1
 
     if avg_depth_map is None:
         return pred_depth
+
+
+def random_tile_param(model, image, img_lr=None, iter_pred=None, boundary=0, update=False, avg_depth_map=None, blr_mask=False, crop_size=None,
+    img_resolution=None, transform=None):
+    height = crop_size[0]
+    width = crop_size[1]
     
+    
+    x_start = [random.randint(0, img_resolution[1] - width - 1)]
+    y_start = [random.randint(0, img_resolution[0] - height - 1)]
+    
+    imgs_crop = []
+    crop_areas = []
+    bboxs_roi = []
+    bboxs_raw = []
+
+    if iter_pred is not None:
+        iter_pred = iter_pred.unsqueeze(dim=0).unsqueeze(dim=0)
+
+    iter_priors = []
+    for x in x_start: # w
+        for y in y_start: # h
+            bbox = (int(y), int(y+height), int(x), int(x+width))
+            img_crop, crop_area = crop(image, bbox)
+            imgs_crop.append(img_crop)
+            crop_areas.append(crop_area)
+            crop_y1, crop_y2, crop_x1, crop_x2 = bbox
+            bbox_roi = torch.tensor([crop_x1 / img_resolution[1] * 512, crop_y1 / img_resolution[0] * 384, crop_x2 / img_resolution[1] * 512, crop_y2 / img_resolution[0] * 384])
+            bboxs_roi.append(bbox_roi)
+            bbox_raw = torch.tensor([crop_x1, crop_y1, crop_x2, crop_y2]) 
+            bboxs_raw.append(bbox_raw)
+
+            if iter_pred is not None:
+                iter_prior, _ = crop(iter_pred, bbox)
+                iter_priors.append(iter_prior)
+
+    crop_areas = torch.cat(crop_areas, dim=0)
+    imgs_crop = torch.cat(imgs_crop, dim=0)
+    bboxs_roi = torch.stack(bboxs_roi, dim=0)
+    bboxs_raw = torch.stack(bboxs_raw, dim=0)
+
+    if iter_pred is not None:
+        iter_priors = torch.cat(iter_priors, dim=0)
+        iter_priors = transform(iter_priors)
+        iter_priors = iter_priors.cuda().float()
+
+    crop_areas = transform(crop_areas)
+    imgs_crop = transform(imgs_crop)
+    
+    imgs_crop = imgs_crop.cuda().float()
+    bboxs_roi = bboxs_roi.cuda().float()
+    crop_areas = crop_areas.cuda().float()
+    img_lr = img_lr.cuda().float()
+    
+    pred_depth_crops = []
+    with torch.no_grad():
+        for i, (img, bbox, crop_area) in enumerate(zip(imgs_crop, bboxs_roi, crop_areas)):
+
+            if iter_pred is not None:
+                iter_prior = iter_priors[i].unsqueeze(dim=0)
+            else:
+                iter_prior = None
+
+            if i == 0:
+                out_dict = model(img.unsqueeze(dim=0), mode='eval', image_raw=img_lr, bbox=bbox.unsqueeze(dim=0), crop_area=crop_area.unsqueeze(dim=0), iter_prior=iter_prior if update is True else None)
+                whole_depth_pred = out_dict['coarse_depth_pred']
+                pred_depth_crop = out_dict['metric_depth']
+                # return whole_depth_pred.squeeze()
+            else:
+                pred_depth_crop = model(img.unsqueeze(dim=0), mode='eval', image_raw=img_lr, bbox=bbox.unsqueeze(dim=0), crop_area=crop_area.unsqueeze(dim=0), iter_prior=iter_prior if update is True else None)['metric_depth']
+
+
+            pred_depth_crop = nn.functional.interpolate(
+                pred_depth_crop, (height, width), mode='bilinear', align_corners=True)
+            # pred_depth_crop = nn.functional.interpolate(
+            #     pred_depth_crop, (height, width), mode='nearest')
+            pred_depth_crops.append(pred_depth_crop.squeeze())
+
+    whole_depth_pred = whole_depth_pred.squeeze()
+
+    ####### stich part
+    inner_idx = 0
+    init_flag = False
+    iter_pred = iter_pred.squeeze()
+    pred_depth = iter_pred
+
+    blur_mask = generatemask((height, width)) + 1e-3
+    for ii, x in enumerate(x_start):
+        for jj, y in enumerate(y_start):
+            if init_flag:
+                # wont be here
+                crop_temp = copy.deepcopy(whole_depth_pred[y: y+height, x: x+width])
+                blur_mask = torch.ones((height, width))
+                blur_mask = torch.tensor(blur_mask, device=whole_depth_pred.device)
+                pred_depth[y: y+height, x: x+width] = blur_mask * pred_depth_crops[inner_idx]+ (1 - blur_mask) * crop_temp
+            else:
+
+                if blr_mask:
+                    blur_mask = torch.tensor(blur_mask, device=whole_depth_pred.device)
+                    count_map = torch.zeros(img_resolution, device=pred_depth_crops[inner_idx].device)
+                    count_map[y: y+height, x: x+width] = blur_mask
+                    pred_map = torch.zeros(img_resolution, device=pred_depth_crops[inner_idx].device)
+                    pred_map[y: y+height, x: x+width] = pred_depth_crops[inner_idx] * blur_mask
+                    avg_depth_map.update(pred_map, count_map)
+                else:
+                    # ensemble with running mean
+                    if boundary != 0:
+                        count_map = torch.zeros(img_resolution, device=pred_depth_crops[inner_idx].device)
+                        count_map[y+boundary: y+height-boundary, x+boundary: x+width-boundary] = 1
+                        pred_map = torch.zeros(img_resolution, device=pred_depth_crops[inner_idx].device)
+                        pred_map[y+boundary: y+height-boundary, x+boundary: x+width-boundary] = pred_depth_crops[inner_idx][boundary:-boundary, boundary:-boundary] 
+                        avg_depth_map.update(pred_map, count_map)
+                    else:
+                        count_map = torch.zeros(img_resolution, device=pred_depth_crops[inner_idx].device)
+                        count_map[y: y+height, x: x+width] = 1
+                        pred_map = torch.zeros(img_resolution, device=pred_depth_crops[inner_idx].device)
+                        pred_map[y: y+height, x: x+width] = pred_depth_crops[inner_idx]
+                        avg_depth_map.update(pred_map, count_map)
+
+            inner_idx += 1
+
+    if avg_depth_map is None:
+        return pred_depth
+
+
 def colorize_infer(value, cmap='magma_r', vmin=None, vmax=None):
     # normalize
     vmin = value.min() if vmin is None else vmin
@@ -598,7 +915,7 @@ def rescale(A, lbound=0, ubound=1):
     A_max = np.max(A)
     return (ubound - lbound) * (A - A_min) / (A_max - A_min) + lbound
 
-def run(model, dataset, gt_dir=None, show_path=None, show=False, save_flag=False, save_path=None, mode=None, dataset_name=None, base_zoed=False):
+def run(model, dataset, gt_dir=None, show_path=None, show=False, save_flag=False, save_path=None, mode=None, dataset_name=None, base_zoed=False, blr_mask=False):
     data_len = len(dataset)
 
     if gt_dir is not None:
@@ -612,11 +929,6 @@ def run(model, dataset, gt_dir=None, show_path=None, show=False, save_flag=False
                 images = dataset[image_ind]
             else:
                 images, depths = dataset[image_ind]
-        
-        # if gt_dir is None:
-        #     images = dataset[image_ind]
-        # else:
-        #     images, depths = dataset[image_ind]
 
         # Load image from dataset
         img = torch.tensor(images.rgb_image).unsqueeze(dim=0).permute(0, 3, 1, 2) # shape: 1, 3, h, w
@@ -629,56 +941,34 @@ def run(model, dataset, gt_dir=None, show_path=None, show=False, save_flag=False
             avg_depth_map = RunningAverageMap(pred_depth)
             
         else:
-            pred_depth = regular_tile(model, img, offset_x=0, offset_y=0, img_lr=img_lr)
-            avg_depth_map = RunningAverageMap(pred_depth)
+            # pred_depth, count_map = regular_tile(model, img, offset_x=0, offset_y=0, img_lr=img_lr)
+            # avg_depth_map = RunningAverageMap(pred_depth, count_map)
+            avg_depth_map = regular_tile(model, img, offset_x=0, offset_y=0, img_lr=img_lr)
         
             if mode== 'p16':
                 pass
             elif mode== 'p49':
-                regular_tile(model, img, offset_x=CROP_SIZE[1]//2, offset_y=0, img_lr=img_lr, iter_pred=avg_depth_map.average_map, boundary=BOUNDARY, update=True, avg_depth_map=avg_depth_map)
-                regular_tile(model, img, offset_x=0, offset_y=CROP_SIZE[0]//2, img_lr=img_lr, iter_pred=avg_depth_map.average_map, boundary=BOUNDARY, update=True, avg_depth_map=avg_depth_map)
-                regular_tile(model, img, offset_x=CROP_SIZE[1]//2, offset_y=CROP_SIZE[0]//2, img_lr=img_lr, iter_pred=avg_depth_map.average_map, boundary=BOUNDARY, update=True, avg_depth_map=avg_depth_map)
+                regular_tile(model, img, offset_x=CROP_SIZE[1]//2, offset_y=0, img_lr=img_lr, iter_pred=avg_depth_map.average_map, boundary=BOUNDARY, update=True, avg_depth_map=avg_depth_map, blr_mask=blr_mask)
+                regular_tile(model, img, offset_x=0, offset_y=CROP_SIZE[0]//2, img_lr=img_lr, iter_pred=avg_depth_map.average_map, boundary=BOUNDARY, update=True, avg_depth_map=avg_depth_map, blr_mask=blr_mask)
+                regular_tile(model, img, offset_x=CROP_SIZE[1]//2, offset_y=CROP_SIZE[0]//2, img_lr=img_lr, iter_pred=avg_depth_map.average_map, boundary=BOUNDARY, update=True, avg_depth_map=avg_depth_map, blr_mask=blr_mask)
 
             elif mode[0] == 'r':
-                regular_tile(model, img, offset_x=CROP_SIZE[1]//2, offset_y=0, img_lr=img_lr, iter_pred=avg_depth_map.average_map, boundary=BOUNDARY, update=True, avg_depth_map=avg_depth_map)
-                regular_tile(model, img, offset_x=0, offset_y=CROP_SIZE[0]//2, img_lr=img_lr, iter_pred=avg_depth_map.average_map, boundary=BOUNDARY, update=True, avg_depth_map=avg_depth_map)
-                regular_tile(model, img, offset_x=CROP_SIZE[1]//2, offset_y=CROP_SIZE[0]//2, img_lr=img_lr, iter_pred=avg_depth_map.average_map, boundary=BOUNDARY, update=True, avg_depth_map=avg_depth_map)
+                regular_tile(model, img, offset_x=CROP_SIZE[1]//2, offset_y=0, img_lr=img_lr, iter_pred=avg_depth_map.average_map, boundary=BOUNDARY, update=True, avg_depth_map=avg_depth_map, blr_mask=blr_mask)
+                regular_tile(model, img, offset_x=0, offset_y=CROP_SIZE[0]//2, img_lr=img_lr, iter_pred=avg_depth_map.average_map, boundary=BOUNDARY, update=True, avg_depth_map=avg_depth_map, blr_mask=blr_mask)
+                regular_tile(model, img, offset_x=CROP_SIZE[1]//2, offset_y=CROP_SIZE[0]//2, img_lr=img_lr, iter_pred=avg_depth_map.average_map, boundary=BOUNDARY, update=True, avg_depth_map=avg_depth_map, blr_mask=blr_mask)
 
                 for i in tqdm(range(int(mode[1:]))):
-                    random_tile(model, img, img_lr=img_lr, iter_pred=avg_depth_map.average_map, boundary=BOUNDARY, update=True, avg_depth_map=avg_depth_map)
+                    random_tile(model, img, img_lr=img_lr, iter_pred=avg_depth_map.average_map, boundary=BOUNDARY, update=True, avg_depth_map=avg_depth_map, blr_mask=blr_mask)
                 
-                # regular_tile(model, img, offset_x=CROP_SIZE[1]//2, offset_y=0, img_lr=img_lr, iter_pred=avg_depth_map.average_map, boundary=BOUNDARY, update=False, avg_depth_map=avg_depth_map)
-                # regular_tile(model, img, offset_x=0, offset_y=CROP_SIZE[0]//2, img_lr=img_lr, iter_pred=avg_depth_map.average_map, boundary=BOUNDARY, update=False, avg_depth_map=avg_depth_map)
-                # regular_tile(model, img, offset_x=CROP_SIZE[1]//2, offset_y=CROP_SIZE[0]//2, img_lr=img_lr, iter_pred=avg_depth_map.average_map, boundary=BOUNDARY, update=False, avg_depth_map=avg_depth_map)
-
-                # for i in tqdm(range(int(mode[1:]))):
-                #     random_tile(model, img, img_lr=img_lr, iter_pred=avg_depth_map.average_map, boundary=BOUNDARY, update=False, avg_depth_map=avg_depth_map)
-        
-        
-        
-        # update depth
-        # upsample_depth = F.interpolate(avg_depth_map.average_map.unsqueeze(dim=0).unsqueeze(dim=0), (IMG_RESOLUTION[0] + BOUNDARY, IMG_RESOLUTION[1] + BOUNDARY), mode='bicubic', align_corners=True)
-        # upsample_depth = upsample_depth[:, :, BOUNDARY:-BOUNDARY, BOUNDARY:-BOUNDARY].squeeze()
-        # avg_depth_map.average_map = upsample_depth
-
         if show:
             color_map = copy.deepcopy(avg_depth_map.average_map)
             color_map = colorize_infer(color_map.detach().cpu().numpy())
-            # color_map = colorize_infer(color_map.detach().cpu().numpy(), cmap='jet')
-            
             cv2.imwrite(os.path.join(show_path, '{}.png'.format(images.name)), color_map)
-
-
-            # invalid_mask = np.logical_or(depths.gt<1e-3, depths.gt>=80)
-            # color_map = colorize(depths.gt, cmap='magma_r', invalid_mask=invalid_mask, dataset_name=dataset.dataset_name)[:, :, :3][:, :, [2, 1, 0]]
-            # cv2.imwrite(os.path.join(show_path, '{}.png'.format(images.name)), color_map)
-
 
         if save_flag:
             np.save(os.path.join(save_path, '{}.npy'.format(images.name)), avg_depth_map.average_map.squeeze().detach().cpu().numpy())
             # np.save(os.path.join(save_path, '{}.npy'.format(images.name)), depths.gt)
             
-    
         if gt_dir is not None:
             if dataset_name == 'nyu':
                 metrics = compute_metrics(torch.tensor(depths.gt), avg_depth_map.average_map, disp_gt_edges=depths.edge, min_depth_eval=1e-3, max_depth_eval=10, garg_crop=False, eigen_crop=True, dataset='nyu', pred_depths=torch.tensor(pred_depths.gt))
@@ -711,7 +1001,8 @@ if __name__ == '__main__':
     parser.add_argument("--crop_size", type=str, default=None)
     parser.add_argument("--mode", type=str, default=None)
     parser.add_argument("--base_zoed", action='store_true')
-    parser.add_argument("--boundary", type=int, default=64)
+    parser.add_argument("--boundary", type=int, default=0)
+    parser.add_argument("--blur_mask", action='store_true')
     args, unknown_args = parser.parse_known_args()
 
     # prepare some global args
@@ -721,12 +1012,7 @@ if __name__ == '__main__':
     elif args.dataset_name == 'gta':
         IMG_RESOLUTION = (1080, 1920)
     elif args.dataset_name == 'nyu':
-        # IMG_RESOLUTION = (2880, 3840) # x6 480, 640
-        # IMG_RESOLUTION = (1920, 2560) # x6 480, 640
-        # IMG_RESOLUTION = (2160, 3840)
-        # IMG_RESOLUTION = (1080, 1920)
         IMG_RESOLUTION = (480, 640)
-        
     else:
         IMG_RESOLUTION = (2160, 3840)
     
@@ -746,14 +1032,20 @@ if __name__ == '__main__':
     overwrite_kwargs = parse_unknown(unknown_args)
     overwrite_kwargs['model_cfg_path'] = args.model_cfg_path
     overwrite_kwargs["model"] = args.model
-    
+        
+    # blur_mask_crop = generatemask(CROP_SIZE)
+    # plt.imshow(blur_mask_crop)
+    # plt.savefig('./nfs/results_show/crop_mask.png')
+    # blur_mask_crop = generatemask_coarse(IMG_RESOLUTION)
+    # plt.imshow(blur_mask_crop)
+    # plt.savefig('./nfs/results_show/whole_mask.png')
+
     config = get_config_user(args.model, **overwrite_kwargs)
     config["pretrained_resource"] = ''
     model = build_model(config)
     model = load_ckpt(model, args.ckp_path)
     model.eval()
     model.cuda()
-    # model = None
 
     # Create dataset from input images
     dataset_custom = ImageDataset(args.rgb_dir, args.gt_dir, args.dataset_name)
@@ -764,22 +1056,4 @@ if __name__ == '__main__':
     if args.save:
         os.makedirs(args.save_path, exist_ok=True)
         
-    run(model, dataset_custom, args.gt_dir, args.show_path, args.show, args.save, args.save_path, mode=args.mode, dataset_name=args.dataset_name, base_zoed=args.base_zoed)
-    
-
-# p16: 01:51
-# p49: 05:04
-
-
-#  {'a1': 0.4272802185151963, 'a2': 0.6998355710214288, 'a3': 0.8569055899583036, 'abs_rel': 0.38948880783889606, 'rmse': 1.0689626472151796, 'log_10': 0.15277552880022838, 'rmse_log': 0.41798716135646985, 'silog': 23.250196436306826, 'sq_rel': 0.7196333874826846, 'see': 0.5688761563404746}
-
-# r128 17:38
-# {'a1': 0.42808668123774923, 'a2': 0.7007819707601601, 'a3': 0.8565129769179137, 'abs_rel': 0.3899963971065438, 'rmse': 1.0757769294407056, 'log_10': 0.15267295082626137, 'rmse_log': 0.41815496657205664, 'silog': 23.310777475952353, 'sq_rel': 0.7311410716046458, 'see': 0.570805557396101}
-
-# r256 29:15
-# {'a1': 0.42699781679175003, 'a2': 0.7004723740442467, 'a3': 0.8563525711776216, 'abs_rel': 0.38969688441442407, 'rmse': 1.0718425415132358, 'log_10': 0.15269575996891313, 'rmse_log': 0.4180413484573364, 'silog': 23.27470558463612, 'sq_rel': 0.7252213456060576, 'see': 0.5703392670206402}
-
-# coarse {'a1': 0.43012118831836565, 'a2': 0.7088245168995503, 'a3': 0.8492355268057739, 'abs_rel': 0.3952735519927481, 'rmse': 1.0917181936295137, 'log_10': 0.15341446548700333, 'rmse_log': 0.42280354966288025, 'silog': 24.36222608082435, 'sq_rel': 0.7756289548200109, 'see': 0.5916460065738015}
-
-# w/o update features
-# {'a1': 0.9847905890463902, 'a2': 0.9950246677219251, 'a3': 0.9979719561712863, 'abs_rel': 0.03911394387628738, 'rmse': 1.0628523476808875, 'log_10': 0.017157386014746, 'rmse_log': 0.06703517375538098, 'silog': 6.0751843984664795, 'sq_rel': 0.08312421162346643, 'see': 0.8491233171677435}
+    run(model, dataset_custom, args.gt_dir, args.show_path, args.show, args.save, args.save_path, mode=args.mode, dataset_name=args.dataset_name, base_zoed=args.base_zoed, blr_mask=args.blur_mask)

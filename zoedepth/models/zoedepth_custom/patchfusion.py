@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# File author: Shariq Farooq Bhat
+# File author: Zhenyu Li
 
 import itertools
 

@@ -24,21 +24,21 @@
 
 import numpy as np
 
-def get_intrinsics(H,W):
+def get_intrinsics(H,W,fov=55):
     """
     Intrinsics for a pinhole camera model.
     Assume fov of 55 degrees and central principal point.
     """
-    f = 0.5 * W / np.tan(0.5 * 55 * np.pi / 180.0)
+    f = 0.5 * W / np.tan(0.5 * fov * np.pi / 180.0)
     cx = 0.5 * W
     cy = 0.5 * H
     return np.array([[f, 0, cx],
                      [0, f, cy],
                      [0, 0, 1]])
 
-def depth_to_points(depth, R=None, t=None):
+def depth_to_points(depth, R=None, t=None, fov=55):
 
-    K = get_intrinsics(depth.shape[1], depth.shape[2])
+    K = get_intrinsics(depth.shape[1], depth.shape[2], fov=fov)
     Kinv = np.linalg.inv(K)
     if R is None:
         R = np.eye(3)
