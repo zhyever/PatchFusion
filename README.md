@@ -1,17 +1,17 @@
 <div align="center">
 <h1>PatchFusion </h1>
-<h3>An End-to-End Tile-Based Framework for High-Resolution Monocular Metric Depth Estimation</h3>
+<h3>An End-to-End Tile-Based Framework <br> for High-Resolution Monocular Metric Depth Estimation</h3>
+
 <br><a href="https://zhyever.github.io/">Zhenyu Li</a>, <a href="https://shariqfarooq123.github.io/">Shariq Farooq Bhat</a>, <a href="https://peterwonka.net/">Peter Wonka</a>. 
 <br>KAUST
 
 <div> <a href="https://zhyever.github.io/patchfusion/">[Project Website] | <a href="">[Arxiv Paper] </a></div>
 
 <center>
-<img src='examples/showcase.gif'>
+<img src='https://github.com/zhyever/zhyever.github.io/blob/main/patchfusion/images/interactive/showcase.gif?raw=true'>
 </center>
 
 </div>
-
 
 ## **Environment setup**
 The project depends on :
