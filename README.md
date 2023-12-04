@@ -2,10 +2,9 @@
 <h1>PatchFusion </h1>
 <h3>An End-to-End Tile-Based Framework <br> for High-Resolution Monocular Metric Depth Estimation</h3>
 
+<a href="https://zhyever.github.io/patchfusion/">[Project Website] | <a href="">[Arxiv Paper] </a>
 <br><a href="https://zhyever.github.io/">Zhenyu Li</a>, <a href="https://shariqfarooq123.github.io/">Shariq Farooq Bhat</a>, <a href="https://peterwonka.net/">Peter Wonka</a>. 
 <br>KAUST
-
-<div> <a href="https://zhyever.github.io/patchfusion/">[Project Website] | <a href="">[Arxiv Paper] </a></div>
 
 <center>
 <img src='https://github.com/zhyever/zhyever.github.io/blob/main/patchfusion/images/interactive/showcase.gif?raw=true'>
@@ -52,6 +51,7 @@ Download our pre-train model [here](xxx). Put this checkpoint at ``nfs/patchfusi
 **Args**
 - We recommand users to use ``--blur_mask`` to reduce patch artifacts, though we didn't use it in our standard evaluation process.
 - ``--mode``: select from p16, p49, and r**n**, where **n** is the number of random added patches.
+- Please refer to ``infer_user.py`` for more details.
 
 ## **Gradio Demo**
 We provide a UI demo built using [gradio](https://gradio.app/). To get started, install UI requirements:
