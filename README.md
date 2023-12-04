@@ -2,7 +2,7 @@
 <h1>PatchFusion </h1>
 <h3>An End-to-End Tile-Based Framework <br> for High-Resolution Monocular Metric Depth Estimation</h3>
 
-<a href="https://zhyever.github.io/patchfusion/">[Project Website] | <a href="">[Arxiv Paper] </a>
+<a href="https://zhyever.github.io/patchfusion/">[Project Website] </a> | <a href="">[Arxiv Paper] </a>
 <br><a href="https://zhyever.github.io/">Zhenyu Li</a>, <a href="https://shariqfarooq123.github.io/">Shariq Farooq Bhat</a>, <a href="https://peterwonka.net/">Peter Wonka</a>. 
 <br>KAUST
 
