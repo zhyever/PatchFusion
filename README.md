@@ -34,7 +34,7 @@ conda activate patchfusion
 ```
 
 ## **Pre-Train Model**
-Download our pre-train model [here](xxx). Put this checkpoint at ``nfs/patchfusion_u4k.pt`` as preparation for the following steps.
+Download our pre-train model [here](https://drive.google.com/file/d/13M_qLOVSANDT1ss59Iebzjj3d0ZeVCi4/view?usp=sharing). Put this checkpoint at ``nfs/patchfusion_u4k.pt`` as preparation for the following steps.
 
 
 ## **User Inference**
@@ -72,7 +72,7 @@ CUDA_VISIBLE_DEVICES=1 python ./ui_generative.py --model zoedepth_custom --ckp_p
 Download training datasets as per instructions given [not yet]().
 
 ```bash
-python train_custom.py -m zoedepth_custom --pretrained_resource="local::./nfs/monodepth3_checkpoints/secstage_ZoeDepthCustomcustom_05-Oct_13-48-0af640f85777_latest.pt" --coarse_model_path="local::./nfs/monodepth3_checkpoints/firsttage_ZoeDepthCustomcustom_05-Oct_12-32-aaad025b3845_latest.pt" --fine_model_path="local::./nfs/monodepth3_checkpoints/secstage_ZoeDepthCustomcustom_05-Oct_13-48-0af640f85777_latest.pt" -d u4k --model_cfg_path ./zoedepth/models/zoedepth_custom/configs/config_zoedepth_patchfusion_finetune.json --wandb_start aaa_base_unet_longer --debug
+python train_custom.py -m zoedepth_custom --pretrained_resource="-" --coarse_model_path="-" --fine_model_path="-" -d u4k --model_cfg_path ./zoedepth/models/zoedepth_custom/configs/config_zoedepth_patchfusion_finetune.json --wandb_start aaa_base_unet_longer --debug
 ```
 
 ## **Evaluation (TBD)**
