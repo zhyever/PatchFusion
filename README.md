@@ -70,13 +70,11 @@ python ./ui_generative.py --model zoedepth_custom --ckp_path nfs/patchfusion_u4k
 ## Citation
 If you find our work useful for your research, please consider citing the paper
 ```
-@article{
-    li2023patchfusion,
+@article{li2023patchfusion,
     title={PatchFusion: An End-to-End Tile-Based Framework for High-Resolution Monocular Metric Depth Estimation}, 
     author={Zhenyu Li and Shariq Farooq Bhat and Peter Wonka},
     year={2023},
     eprint={2312.02284},
     archivePrefix={arXiv},
-    primaryClass={cs.CV}
-}
+    primaryClass={cs.CV}}
 ```
