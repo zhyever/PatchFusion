@@ -14,6 +14,9 @@
 
 </div>
 
+## **DEMO**
+We provide a [demo link](https://55510c1c829b28b9e3.gradio.live) for you to play around. Note this link is not stable due to running on a local machine.
+
 ## **Environment setup**
 The project depends on :
 - [pytorch](https://pytorch.org/) (Main framework)

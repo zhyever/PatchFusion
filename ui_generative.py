@@ -181,15 +181,24 @@ def process(input_image, prompt, a_prompt, n_prompt, num_samples, image_resoluti
 
     return update_return_list
 
+title = "# PatchFusion"
+description = """Official demo for **PatchFusion: An End-to-End Tile-Based Framework for High-Resolution Monocular Metric Depth Estimation**.
+
+PatchFusion is a deep learning model for high-resolution metric depth estimation from a single image.
+
+Please refer to our [paper](https://arxiv.org/abs/2312.02284) or [github](https://github.com/zhyever/PatchFusion) for more details."""
 
 with gr.Blocks() as demo:
+    gr.Markdown(title)
+    gr.Markdown(description)
+    
     with gr.Row():
         gr.Markdown("## Control Stable Diffusion with Depth Maps")
     with gr.Row():
         with gr.Column():
             # input_image = gr.Image(source='upload', type="pil")
             input_image = gr.Image(label="Input Image", type='pil')
-            prompt = gr.Textbox(label="Prompt")
+            prompt = gr.Textbox(label="Prompt (input your description)", value='An evening scene with the Eiffel Tower, the bridge under the glow of street lamps and a twilight sky')
             run_button = gr.Button("Run")
             with gr.Accordion("Advanced options", open=False):
                 # mode = gr.Radio(["P49", "R"], label="Tiling mode", info="We recommand using P49 for fast evaluation and R with 1024 patches for best visualization results, respectively", elem_id='mode', value='R'),

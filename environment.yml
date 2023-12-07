@@ -1,4 +1,4 @@
-name: patchfusion
+name: patchfusion_release
 channels:
   - pytorch
   - nvidia
@@ -22,7 +22,7 @@ dependencies:
   - json5=0.9.14
   - einops=0.7.0
   - pip:
-    - huggingface-hub==0.11.1
+    - huggingface-hub==0.19.4 # this version is higher than the one used in ZoeDepth
     - timm==0.6.12
     - tqdm==4.64.1
     - wandb==0.13.9
