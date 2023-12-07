@@ -1,5 +1,4 @@
 *.png
-**.gif
 .vscode/
 *.rdb
 **.xml
