@@ -6,8 +6,12 @@
 <br><a href="https://zhyever.github.io/">Zhenyu Li</a>, <a href="https://shariqfarooq123.github.io/">Shariq Farooq Bhat</a>, <a href="https://peterwonka.net/">Peter Wonka</a>. 
 <br>KAUST
 
-<center>
+<!-- <center>
 <img src='https://github.com/zhyever/zhyever.github.io/blob/main/patchfusion/images/interactive/showcase.gif?raw=true'>
+</center> -->
+
+<center>
+<img src='examples/showcase_2.gif'>
 </center>
 
 </div>
@@ -60,28 +64,24 @@ pip install -r ui_requirements.txt
 ```
 Then launch the gradio UI for depth estimation or image to 3D:
 ```bash
-CUDA_VISIBLE_DEVICES=1 python ./ui_prediction.py --model zoedepth_custom --ckp_path nfs/patchfusion_u4k.pt --model_cfg_path ./zoedepth/models/zoedepth_custom/configs/config_zoedepth_patchfusion.json
+python ./ui_prediction.py --model zoedepth_custom --ckp_path nfs/patchfusion_u4k.pt --model_cfg_path ./zoedepth/models/zoedepth_custom/configs/config_zoedepth_patchfusion.json
 ```
 
 Then launch the gradio UI for depth-guided image generation with ControlNet (You might need to install ControlNet dependency as well. Please check ``ControlNet/environment.yaml`` and [official guidance](https://github.com/lllyasviel/ControlNet/tree/main)):
 ```bash
-CUDA_VISIBLE_DEVICES=1 python ./ui_generative.py --model zoedepth_custom --ckp_path nfs/patchfusion_u4k.pt --model_cfg_path ./zoedepth/models/zoedepth_custom/configs/config_zoedepth_patchfusion.json
+python ./ui_generative.py --model zoedepth_custom --ckp_path nfs/patchfusion_u4k.pt --model_cfg_path ./zoedepth/models/zoedepth_custom/configs/config_zoedepth_patchfusion.json
 ```
 
-## **Training (TBD)**
-Download training datasets as per instructions given [not yet]().
-
-```bash
-python train_custom.py -m zoedepth_custom --pretrained_resource="-" --coarse_model_path="-" --fine_model_path="-" -d u4k --model_cfg_path ./zoedepth/models/zoedepth_custom/configs/config_zoedepth_patchfusion_finetune.json --wandb_start aaa_base_unet_longer --debug
+## Citation
+If you find our work useful for your research, please consider citing the paper
 ```
-
-## **Evaluation (TBD)**
-Download the required dataset and change the `DATASETS_CONFIG` dictionary in `utils/config.py` accordingly. 
-### Evaluating offical models
-On UnrealStereo4K for example:
-
-```bash
-python ./infer_user.py --model zoedepth_custom --ckp_path nfs/patchfusion_u4k.pt --model_cfg_path ./zoedepth/models/zoedepth_custom/configs/config_zoedepth_patchfusion.json --rgb_dir nfs/images --show_path nfs/results_show --show --mode r128 (TBD)
+@article{
+    li2023patchfusion,
+    title={PatchFusion: An End-to-End Tile-Based Framework for High-Resolution Monocular Metric Depth Estimation}, 
+    author={Zhenyu Li and Shariq Farooq Bhat and Peter Wonka},
+    year={2023},
+    eprint={2312.02284},
+    archivePrefix={arXiv},
+    primaryClass={cs.CV}
+}
 ```
-
-
