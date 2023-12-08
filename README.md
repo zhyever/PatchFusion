@@ -15,9 +15,10 @@
 </div>
 
 ## **DEMO**
-We provide a [demo link](https://55510c1c829b28b9e3.gradio.live) for you to play around. Note this link is not stable due to running on a local machine.
 
-The offical demo [here](https://huggingface.co/spaces/zhyever/PatchFusion) is waiting for the kind GPU support!
+Our offical demo is available [here](https://huggingface.co/spaces/zhyever/PatchFusion)! Thanks for the kind support from huggingface!
+
+We provide an experimental [demo link](https://55510c1c829b28b9e3.gradio.live) (with 80G memory) for you to play around. Note this link would be expired soon.
 
 ## **Environment setup**
 The project depends on :
