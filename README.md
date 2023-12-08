@@ -18,7 +18,7 @@
 
 Our offical demo is available [here](https://huggingface.co/spaces/zhyever/PatchFusion)! Thanks for the kind support from [hysts](https://github.com/hysts)!
 
-We also provide an experimental [demo link](https://55510c1c829b28b9e3.gradio.live) (with 80G memory) for you to play around. Note this link would be expired soon.
+We also provide an experimental [demo](https://06ef636c990adc9184.gradio.live) (with 80G memory) for you to play around. Note this link would be expired soon.
 
 ## **Environment setup**
 The project depends on :
