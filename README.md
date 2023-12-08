@@ -2,7 +2,7 @@
 <h1>PatchFusion </h1>
 <h3>An End-to-End Tile-Based Framework <br> for High-Resolution Monocular Metric Depth Estimation</h3>
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) ![PyTorch](https://img.shields.io/badge/PyTorch_v1.13.1-EE4C2C?&logo=pytorch&logoColor=white) 
+[![Website](examples/badge-website.svg)](https://zhyever.github.io/patchfusion/) [![Paper](https://img.shields.io/badge/arXiv-PDF-b31b1b)](https://arxiv.org/abs/2312.02284) [![Hugging Face Space](https://img.shields.io/badge/🤗%20Hugging%20Face-Space-yellow)](https://huggingface.co/spaces/zhyever/PatchFusion) [![Hugging Face Model](https://img.shields.io/badge/🤗%20Hugging%20Face-Model-yellow)](https://huggingface.co/zhyever/PatchFusion) [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
 <a href="https://zhyever.github.io/patchfusion/">[Project Website] </a> | <a href="">[Arxiv Paper] </a>
 <br><a href="https://zhyever.github.io/">Zhenyu Li</a>, <a href="https://shariqfarooq123.github.io/">Shariq Farooq Bhat</a>, <a href="https://peterwonka.net/">Peter Wonka</a>. 
@@ -16,6 +16,8 @@
 
 ## **DEMO**
 We provide a [demo link](https://55510c1c829b28b9e3.gradio.live) for you to play around. Note this link is not stable due to running on a local machine.
+
+The offical demo [here](https://huggingface.co/spaces/zhyever/PatchFusion) is waiting for the kind GPU support!
 
 ## **Environment setup**
 The project depends on :
