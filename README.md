@@ -9,6 +9,10 @@
 <br>KAUST
 
 <center>
+<img src='examples/showcase_3.gif'>
+</center>
+
+<center>
 <img src='examples/showcase_2.gif'>
 </center>
 
@@ -17,8 +21,6 @@
 ## **DEMO**
 
 Our offical demo is available [here](https://huggingface.co/spaces/zhyever/PatchFusion)! Thanks for the kind support from [hysts](https://github.com/hysts)!
-
-We also provide an experimental [demo](https://06ef636c990adc9184.gradio.live) (with 80G memory) for you to play around. Note this link would be expired soon.
 
 ## **Environment setup**
 The project depends on :

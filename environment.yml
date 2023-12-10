@@ -1,4 +1,4 @@
-name: patchfusion_release
+name: patchfusion
 channels:
   - pytorch
   - nvidia
