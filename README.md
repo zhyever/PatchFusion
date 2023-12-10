@@ -19,7 +19,7 @@
 
 ## **DEMO**
 
-Our offical huggingface demo is available [here](https://huggingface.co/spaces/zhyever/PatchFusion)! You can have a test with your own high-resolution image, even without a local GPU! It only takes 1min for depth prediction plus controlnet generation!
+Our official huggingface demo is available [here](https://huggingface.co/spaces/zhyever/PatchFusion)! You can have a test with your own high-resolution image, even without a local GPU! It only takes 1min for depth prediction plus controlnet generation!
 
 Thanks for the kind support from [hysts](https://github.com/hysts)!
 
