@@ -962,11 +962,20 @@ def run(model, dataset, gt_dir=None, show_path=None, show=False, save_flag=False
                 
         if show:
             color_map = copy.deepcopy(avg_depth_map.average_map)
-            color_map = colorize_infer(color_map.detach().cpu().numpy())
-            cv2.imwrite(os.path.join(show_path, '{}.png'.format(images.name)), color_map)
+            color_map_1 = colorize_infer(color_map.detach().cpu().numpy())
+            cv2.imwrite(os.path.join(show_path, '{}.png'.format(images.name)), color_map_1)
+
+            color_map = copy.deepcopy(avg_depth_map.average_map)
+            color_map_2 = colorize(color_map, cmap='gray_r')
+            cv2.imwrite(os.path.join(show_path, '{}_gray.png'.format(images.name)), color_map_2)
+
 
         if save_flag:
             np.save(os.path.join(save_path, '{}.npy'.format(images.name)), avg_depth_map.average_map.squeeze().detach().cpu().numpy())
+
+
+            png_file = Image.fromarray((avg_depth_map.average_map.squeeze().detach().cpu().numpy()*256).astype('uint16'))
+            png_file.save(os.path.join(show_path, '{}_16bitpng.png'.format(images.name)))
             # np.save(os.path.join(save_path, '{}.npy'.format(images.name)), depths.gt)
             
         if gt_dir is not None:
