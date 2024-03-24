@@ -60,6 +60,12 @@ def parse_args():
         default=False,
         help='use gray-scale color map')
     parser.add_argument(
+        '--image-raw-shape',
+        nargs='+', default=[2160, 3840])
+    parser.add_argument(
+        '--patch-split-num',
+        nargs='+', default=[4, 4])
+    parser.add_argument(
         '--cfg-options',
         nargs='+',
         action=DictAction,
@@ -87,6 +93,9 @@ def parse_args():
 def main():
     args = parse_args()
 
+    image_raw_shape=[int(num) for num in args.image_raw_shape]
+    patch_split_num=[int(num) for num in args.patch_split_num]
+        
     # load config
     cfg = Config.fromfile(args.config)
     
@@ -145,7 +154,9 @@ def main():
     else:
         dataloader_config = cfg.val_dataloader
         dataset = build_dataset(cfg.val_dataloader.dataset)
-        
+    
+    dataset.image_resolution = image_raw_shape
+    
     # extract experiment name from cmd
     config_path = args.config
     exp_cfg_filename = config_path.split('/')[-1].split('.')[0]
@@ -237,7 +248,7 @@ def main():
     if args.test_type == 'consistency':
         tester.run_consistency()
     else:
-        tester.run(args.cai_mode, process_num=args.process_num)
+        tester.run(args.cai_mode, process_num=args.process_num, image_raw_shape=image_raw_shape, patch_split_num=patch_split_num)
 
 if __name__ == '__main__':
     main()

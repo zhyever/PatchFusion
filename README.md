@@ -104,23 +104,39 @@ When building the PatchFusion model, it will load the coarse and fine checkpoint
 ## **User Inference**
 
 ### Running:
-```bash
-python run.py <config> --ckp-path <checkpoints> --cai-mode <m1 | m2 | rn> --cfg-option general_dataloader.dataset.rgb_image_dir='<img-directory>' --save --work-dir <output-path> --test-type general [--gray-scale]
-```
-Arguments:
-- `config`: `configs/patchfusion_depthanything/depthanything_general.py` and `./configs/patchfusion_zoedepth/zoedepth_general.py` are for Depth-Anything and ZoeDepth inference, respectively.
-- `--ckp-path`: we can choose from `Zhyever/patchfusion_depth_anything_vits14`, `Zhyever/patchfusion_depth_anything_vitb14`, `/patchfusion_depth_anything_vitl14`, and `Zhyever/patchfusion_zoedepth`.
-- `--cai-mode`: indicates the specific PatchFusion mode. `rn` means `n` patches in mode `r`.
-- `--cfg-option`: specifies the input image directory. The prefix is indexing the config and just keep it there.
-- `--work-dir`: saves the output files, including one colored depth map and one 16bit-png file (multiplier=256).
-- `--gray-scale`: is set to save the grayscale depth map. Without it, by default, we apply a color palette to the depth map.
+<a name="running"></a>
+To execute user inference, use the following command:
 
-### Example:
 ```bash
-python ./tools/test.py configs/patchfusion_depthanything/depthanything_general.py --ckp-path Zhyever/patchfusion_depth_anything_vitl14 --cai-mode r128 --cfg-option general_dataloader.dataset.rgb_image_dir='./examples/' --save --work-dir ./work_dir/predictions --test-type general
+python run.py ${CONFIG_FILE} --ckp-path <checkpoints> --cai-mode <m1 | m2 | rn> --cfg-option general_dataloader.dataset.rgb_image_dir='<img-directory>' [--save] --work-dir <output-path> --test-type general [--gray-scale] --image-raw-shape [h w] --patch-split-num [h, w]
 ```
+Arguments Explanation (More details can be found [here](./docs/user_infer.md)):
+- ·`${CONFIG_FILE}`: Select the configuration file from the following options based on the inference type you want to run:
+    - `configs/patchfusion_depthanything/depthanything_general.py` for Depth-Anything
+    - `configs/patchfusion_zoedepth/zoedepth_general.py` for ZoeDepth inference
+- `--ckp-path`: Specify the checkpoint path. Select from the following options to load from Hugging Face (an active network connection is required). Local checkpoint files can also be used:
+    - `Zhyever/patchfusion_depth_anything_vits14`
+    - `Zhyever/patchfusion_depth_anything_vitb14`
+    - `Zhyever/patchfusion_depth_anything_vitl14`
+    - `Zhyever/patchfusion_zoedepth`
+- `--cai-mode`: Defines the specific PatchFusion mode to use. For example, rn indicates n patches in mode r.
+- `--cfg-option`: Specifies the input image directory. Maintain the prefix as it indexes the configuration.
+- `--save`: Enables the saving of output files to the specified --work-dir directory.
+- `--work-dir`: Directory where the output files will be stored, including a colored depth map and a 16-bit PNG file (multiplier=256).
+- `--gray-scale`: If set, the output will be a grayscale depth map. If omitted, a color palette is applied to the depth map by default.
+- `--image-raw-shape`: Specifies the original dimensions of the input image. Default: `2160 3840`.
+- `--patch-split-num`: Defines how the input image is divided into smaller patches for processing. Default: `4 4`.
+
+### Example Usage:
+<a name="example_usage"></a>
+Below is an example command that demonstrates how to run the inference process:
+```bash
+python ./tools/test.py configs/patchfusion_depthanything/depthanything_general.py --ckp-path Zhyever/patchfusion_depth_anything_vitl14 --cai-mode r32 --cfg-option general_dataloader.dataset.rgb_image_dir='./examples/' --save --work-dir ./work_dir/predictions --test-type general --image-raw-shape 1080 1920 --patch-split-num 2 2
+```
+This example performs inference using the `depthanything_general.py` configuration for Depth-Anything, loads the specified checkpoint `patchfusion_depth_anything_vitl14`, sets the PatchFusion mode to r128, specifies the input image directory `./examples/`, and saves the output to ./work_dir/predictions `./work_dir/predictions`. The original dimensions of the input image is `2160x3840` and the input image is divided into `2x2` patches.
 
 ### Easy Way to Import PatchFusion:
+<a name="easy_way_to_import"></a>
 <details>
 <summary>Code snippet</summary>
 
@@ -137,7 +153,7 @@ model_name = 'Zhyever/patchfusion_depth_anything_vitl14'
 
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 model = PatchFusion.from_pretrained(model_name).to(DEVICE).eval()
-default_resolution = model.tile_cfg['image_raw_shape']
+image_raw_shape = model.tile_cfg['image_raw_shape']
 image_resizer = model.resizer
 
 image = cv2.imread('./examples/example_1.jpeg')
@@ -145,12 +161,12 @@ image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB) / 255.0
 image = transforms.ToTensor()(np.asarray(image)) # raw image
 
 image_lr = image_resizer(image.unsqueeze(dim=0)).float().to(DEVICE)
-image_hr = F.interpolate(image.unsqueeze(dim=0), default_resolution, mode='bicubic', align_corners=True).float().to(DEVICE)
+image_hr = F.interpolate(image.unsqueeze(dim=0), image_raw_shape, mode='bicubic', align_corners=True).float().to(DEVICE)
 
-mode = 'r128'
-process_num = 4 # batch process size. It could be larger if the GPU memory is larger
+mode = 'r128' # inference mode
+process_num = 4 # batch process size
 depth_prediction, _ = model(mode='infer', cai_mode=mode, process_num=process_num, image_lr=image_lr, image_hr=image_hr)
-depth_prediction = F.interpolate(depth_prediction, image.shape[-2:])[0, 0].detach().cpu().numpy() # depth shape would be (h, w), similar to the input image.
+depth_prediction = F.interpolate(depth_prediction, image.shape[-2:])[0, 0].detach().cpu().numpy() # depth shape would be (h, w), similar to the input image
 ```
 </details>
 

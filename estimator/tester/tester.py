@@ -44,7 +44,7 @@ class Tester:
         return collect_batch_data
     
     @torch.no_grad()
-    def run(self, cai_mode='p16', process_num=4):
+    def run(self, cai_mode='p16', process_num=4, image_raw_shape=[2160, 3840], patch_split_num=[4, 4]):
         
         results = []
         dataset = self.dataloader.dataset
@@ -57,7 +57,11 @@ class Tester:
         for idx, (batch_indices, batch_data) in enumerate(zip(loader_indices, self.dataloader)):
             
             batch_data_collect = self.collect_input(batch_data)
-            result, log_dict = self.model(mode='infer', cai_mode=cai_mode, process_num=process_num, **batch_data_collect) # might use test/val to split cases
+            
+            tile_cfg = dict()
+            tile_cfg['image_raw_shape'] = image_raw_shape
+            tile_cfg['patch_split_num'] = patch_split_num # use a customized value instead of the default [4, 4] for 4K images
+            result, log_dict = self.model(mode='infer', cai_mode=cai_mode, process_num=process_num, tile_cfg=tile_cfg, **batch_data_collect) # might use test/val to split cases
             
             if self.runner_info.save:
                 

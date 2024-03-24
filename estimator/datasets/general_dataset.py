@@ -47,11 +47,11 @@ def read_image(path, dataset_name, image_resolution=(2160, 3840)):
     return img
                             
 class Images:
-    def __init__(self, root_dir, files, index, dataset_name=None):
+    def __init__(self, root_dir, files, index, dataset_name, image_resolution=(2160, 3840)):
         self.root_dir = root_dir
         name = files[index]
         self.dataset_name = dataset_name
-        self.rgb_image = read_image(os.path.join(self.root_dir, name), dataset_name)
+        self.rgb_image = read_image(os.path.join(self.root_dir, name), dataset_name, image_resolution=image_resolution)
         name = name.replace(".jpg", "")
         name = name.replace(".png", "")
         name = name.replace(".jpeg", "")
@@ -151,7 +151,7 @@ class ImageDataset(UnrealStereo4kDataset):
         min_depth=1e-3,
         max_depth=80,
         gt_dir=None,
-        # process_shape=[384, 512],
+        image_resolution=[2160, 3840],
         dataset_name='',
         network_process_size=(384, 512),
         resize_mode='zoe'):
@@ -180,19 +180,21 @@ class ImageDataset(UnrealStereo4kDataset):
         else:
             raise NotImplementedError
         
+        self.image_resolution = image_resolution
+        
     def __len__(self):
         return len(self.files)
 
     def __getitem__(self, index):
         if self.gt_dir is not None:
-            image, depth = Images(self.rgb_image_dir, self.files, index, self.dataset_name), DepthMap(self.gt_dir, self.gt_files, index, self.dataset_name)
+            image, depth = Images(self.rgb_image_dir, self.files, index, self.dataset_name, self.image_resolution), DepthMap(self.gt_dir, self.gt_files, index, self.dataset_name)
             image_rgb = image.rgb_image
             filename = image.name
             depth_gt = depth.gt
             edge = depth.edge
             
         else:
-            image = Images(self.rgb_image_dir, self.files, index, self.dataset_name)
+            image = Images(self.rgb_image_dir, self.files, index, self.dataset_name, self.image_resolution)
             image_rgb = image.rgb_image
             filename = image.name
         
