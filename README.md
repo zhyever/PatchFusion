@@ -15,8 +15,7 @@
 
 ## ✨ **NEWS**
 
-- TODO: We're refining the training docs.
-- 2024-03-25: Release [inference introduction](./docs/user_infer.md).
+- 2024-03-25: Release [inference introduction](./docs/user_infer.md) and [training introduction](./docs/user_training.md).
 - 2024-03-21: Release refactored codes (main branch in this repo).
 - 2024-03-16: Release updated [huggingface demo](https://huggingface.co/spaces/zhyever/PatchFusion), which supports [Depth-Anything](https://github.com/LiheYoung/Depth-Anything).
 - 2024-03-04: Accepted to CVPR 2024.
@@ -122,7 +121,7 @@ To execute user inference, use the following command:
 python run.py ${CONFIG_FILE} --ckp-path <checkpoints> --cai-mode <m1 | m2 | rn> --cfg-option general_dataloader.dataset.rgb_image_dir='<img-directory>' [--save] --work-dir <output-path> --test-type general [--gray-scale] --image-raw-shape [h w] --patch-split-num [h, w]
 ```
 Arguments Explanation (More details can be found [here](./docs/user_infer.md)):
-- ·`${CONFIG_FILE}`: Select the configuration file from the following options based on the inference type you want to run:
+- `${CONFIG_FILE}`: Select the configuration file from the following options based on the inference type you want to run:
     - `configs/patchfusion_depthanything/depthanything_general.py` for Depth-Anything
     - `configs/patchfusion_zoedepth/zoedepth_general.py` for ZoeDepth inference
 - `--ckp-path`: Specify the checkpoint path. Select from the following options to load from Hugging Face (an active network connection is required). Local checkpoint files can also be used:
