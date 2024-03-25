@@ -38,7 +38,7 @@ The different modes are introduced as follow.
 
 ## Simple Forward Instruction:
 
-Here is the copy of [**Easy Way to Import PatchFusion**](../README.md#easy_way_to_import) in [README.md](../README.md). Now, we're extending it to support customized tiling strategy.
+Here is the copy of [**Easy Way to Import PatchFusion**](https://github.com/zhyever/PatchFusion?tab=readme-ov-file#easy-way-to-import-patchfusion) in [README.md](../README.md). Now, we're extending it to support customized tiling strategy.
 
 ```python
 import cv2
@@ -112,7 +112,7 @@ Now, this version works for 2K images and the tiling strategy changes to `2x2` s
 
 ## Inference with Multiple GPUs:
 
-Based on the [**Running**](../README.md#running) in [README.md](../README.md), we're extending it to support multiple-gpu inference.
+Based on the [**Running**](https://github.com/zhyever/PatchFusion?tab=readme-ov-file#running) in [README.md](../README.md), we're extending it to support multiple-gpu inference.
 
 From the basic single-gpu inference:
 ```bash
@@ -124,7 +124,7 @@ We extend it to this multiple-gpu version:
 sh tools/dist_test.sh ${CONFIG_FILE} ${GPU_NUM} [arguments]
 ```
 
-Here is one example for using 4 gpus during the inference, corresponding to the [**example**](../README.md#example_usage) in [README.md](../README.md):
+Here is one example for using 4 gpus during the inference, corresponding to the [**example**](https://github.com/zhyever/PatchFusion?tab=readme-ov-file#example-usage) in [README.md](../README.md):
 ```bash
 sh tools/dist_test.sh configs/patchfusion_depthanything/depthanything_general.py 4 --ckp-path Zhyever/patchfusion_depth_anything_vitl14 --cai-mode r32 --cfg-option general_dataloader.dataset.rgb_image_dir='./examples/' --save --work-dir ./work_dir/predictions --test-type general --image-raw-shape 1080 1920 --patch-split-num 2 2
 ```

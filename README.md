@@ -15,7 +15,8 @@
 
 ## ✨ **NEWS**
 
-- TODO: We're refining the inference and training docs.
+- TODO: We're refining the training docs.
+- 2024-03-25: Release [inference introduction](./docs/user_infer.md).
 - 2024-03-21: Release refactored codes (main branch in this repo).
 - 2024-03-16: Release updated [huggingface demo](https://huggingface.co/spaces/zhyever/PatchFusion), which supports [Depth-Anything](https://github.com/LiheYoung/Depth-Anything).
 - 2024-03-04: Accepted to CVPR 2024.
@@ -54,6 +55,7 @@ Before running the code, please first run:
 export PYTHONPATH="${PYTHONPATH}:/path/to/the/folder/PatchFusion"
 export PYTHONPATH="${PYTHONPATH}:/path/to/the/folder/PatchFusion/external"
 ```
+**Make sure that you have exported the `external` folder which stores codes from other repos (ZoeDepth, Depth-Anything, etc.)**
 
 ## **Pre-Train Model**
 
@@ -104,7 +106,6 @@ When building the PatchFusion model, it will load the coarse and fine checkpoint
 ## **User Inference**
 
 ### Running:
-<a name="running"></a>
 To execute user inference, use the following command:
 
 ```bash
@@ -128,17 +129,17 @@ Arguments Explanation (More details can be found [here](./docs/user_infer.md)):
 - `--patch-split-num`: Defines how the input image is divided into smaller patches for processing. Default: `4 4`.
 
 ### Example Usage:
-<a name="example_usage"></a>
 Below is an example command that demonstrates how to run the inference process:
 ```bash
 python ./tools/test.py configs/patchfusion_depthanything/depthanything_general.py --ckp-path Zhyever/patchfusion_depth_anything_vitl14 --cai-mode r32 --cfg-option general_dataloader.dataset.rgb_image_dir='./examples/' --save --work-dir ./work_dir/predictions --test-type general --image-raw-shape 1080 1920 --patch-split-num 2 2
 ```
-This example performs inference using the `depthanything_general.py` configuration for Depth-Anything, loads the specified checkpoint `patchfusion_depth_anything_vitl14`, sets the PatchFusion mode to r128, specifies the input image directory `./examples/`, and saves the output to ./work_dir/predictions `./work_dir/predictions`. The original dimensions of the input image is `2160x3840` and the input image is divided into `2x2` patches.
+This example performs inference using the `depthanything_general.py` configuration for Depth-Anything, loads the specified checkpoint `patchfusion_depth_anything_vitl14`, sets the PatchFusion mode to `r32`, specifies the input image directory `./examples/`, and saves the output to ./work_dir/predictions `./work_dir/predictions`. The original dimensions of the input image is `1080x1920` and the input image is divided into `2x2` patches.
 
 ### Easy Way to Import PatchFusion:
-<a name="easy_way_to_import"></a>
 <details>
 <summary>Code snippet</summary>
+
+You can find this code snippet in `./tools/test_single_forward.py`.
 
 ```python
 import cv2
@@ -170,11 +171,11 @@ depth_prediction = F.interpolate(depth_prediction, image.shape[-2:])[0, 0].detac
 ```
 </details>
 
-### We provide more introductions about inference [here](./docs/user_infer.md). (TBD)
+### More introductions about inference are provided [here](./docs/user_infer.md).
 
 ## **User Training**
 
-### We provide more introductions about training [here](./docs/user_training.md). (TBD)
+### Please refer to [user_training](./docs/user_training.md) for more details. (TBD)
 
 ## **Acknowledgement**
 
