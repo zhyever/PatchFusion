@@ -32,14 +32,11 @@ import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
 from mmengine import print_log
-
 from estimator.registry import MODELS
 from estimator.models import build_model
-from estimator.models.utils import get_activation
-from zoedepth.models.zoedepth import ZoeDepth
+from estimator.models.utils import generatemask, RunningAverageMap
 
-import matplotlib.pyplot as plt
-from estimator.models.utils import get_activation, generatemask, RunningAverageMap
+from zoedepth.models.zoedepth import ZoeDepth
 from zoedepth.models.base_models.midas import Resize as ResizeZoe
 from depth_anything.transform import Resize as ResizeDA
 

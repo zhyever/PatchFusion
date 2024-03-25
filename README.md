@@ -80,17 +80,18 @@ model = PatchFusion.from_pretrained(model_name).to(DEVICE).eval()
 <details>
 <summary>Click here for solutions</summary>
 
-- Manually download the checkpoint from [here](https://huggingface.co/zhyever/PatchFusion/tree/main). For example, if we want to use depth-anything vitl, we need to download three checkpoints: [coarse_pretrain.pth](https://huggingface.co/zhyever/PatchFusion/blob/main/depthanything_vitl_u4k/coarse_pretrain/checkpoint_24.pth), [fine_pretrain.pth](https://huggingface.co/zhyever/PatchFusion/blob/main/depthanything_vitl_u4k/fine_pretrain/checkpoint_24.pth), and [patchfusion.pth](https://huggingface.co/zhyever/PatchFusion/blob/main/depthanything_vitl_u4k/patchfusion/checkpoint_16.pth). All training logs are provided there.
+- Manually download the checkpoint from [here](https://huggingface.co/zhyever/PatchFusion/tree/main). For example, if you want to use depth-anything vitl, you need to download three checkpoints: [coarse_pretrain.pth](https://huggingface.co/zhyever/PatchFusion/blob/main/depthanything_vitl_u4k/coarse_pretrain/checkpoint_24.pth), [fine_pretrain.pth](https://huggingface.co/zhyever/PatchFusion/blob/main/depthanything_vitl_u4k/fine_pretrain/checkpoint_24.pth), and [patchfusion.pth](https://huggingface.co/zhyever/PatchFusion/blob/main/depthanything_vitl_u4k/patchfusion/checkpoint_16.pth).
 
-- Save them to the local folder. For example: we put them at: `./work_dir/depth-anything/ckps`
+- Save them to the local folder. For example: put them at: `./work_dir/depth-anything/ckps`
 
-- Then, set the checkpoint path in the corresponding config files (e.g. `./configs/patchfusion_depthanything/depthanything_vitl_patchfusion_u4k.py` in this case)
+- Then, set the checkpoint path in the corresponding config files (e.g. `./configs/patchfusion_depthanything/depthanything_vitl_patchfusion_u4k.py` in this case): 
 
 ``` yaml
 model.config.pretrain_model=['./work_dir/depth-anything/ckps/coarse_pretrain.pth', './work_dir/depth-anything/ckps/fine_pretrain.pth']
 
-# Note the default path would be: './work_dir/depthanything_vitl_u4k/coarse_pretrain/checkpoint_24.pth', './work_dir/depthanything_vitl_u4k/fine_pretrain/checkpoint_24.pth'. Just look for them and replace them correspondingly.
+# Note the default path would be: './work_dir/depthanything_vitl_u4k/coarse_pretrain/checkpoint_24.pth', './work_dir/depthanything_vitl_u4k/fine_pretrain/checkpoint_24.pth'. Just look for this item replace it correspondingly.
 ```
+
 - Lastly, load the model locally:
 ```python
 from mmengine.config import Config
@@ -99,7 +100,16 @@ cfg = Config.fromfile(cfg_path) # load corresponding config for depth-anything v
 model = build_model(cfg.model) # build the model 
 print(model.load_dict(torch.load(cfg.ckp_path)['model_state_dict']), logger='current') # load checkpoint
 ```
-When building the PatchFusion model, it will load the coarse and fine checkpoints in the `init` function. Because the `patchfusion.pth` only contains the parameters of the fusion network, there will be some warnings here.
+When building the PatchFusion model, it will load the coarse and fine checkpoints in the `init` function. Because the `patchfusion.pth` only contains the parameters of the fusion network, there will be some warnings here. But it's totally fine. The idea is to save coarse model, fine model, and fusion model separately.
+
+- We list the corresponding config path as below. Please make sure looking for the correct one before starting to modify.
+
+| Model Name  | Config Path  | 
+|---|---|
+| Depth-Anything-vitl  |  `./configs/patchfusion_depthanything/depthanything_vitl_patchfusion_u4k.py` |
+| Depth-Anything-vitb  |  `./configs/patchfusion_depthanything/depthanything_vitb_patchfusion_u4k.py` |
+| Depth-Anything-vits  |  `./configs/patchfusion_depthanything/depthanything_vits_patchfusion_u4k.py` |
+| ZoeDepth-N  |  `./configs/patchfusion_zoedepth/zoedepth_patchfusion_u4k.py` |
 
 </details>
 
@@ -120,13 +130,13 @@ Arguments Explanation (More details can be found [here](./docs/user_infer.md)):
     - `Zhyever/patchfusion_depth_anything_vitb14`
     - `Zhyever/patchfusion_depth_anything_vitl14`
     - `Zhyever/patchfusion_zoedepth`
-- `--cai-mode`: Defines the specific PatchFusion mode to use. For example, rn indicates n patches in mode r.
-- `--cfg-option`: Specifies the input image directory. Maintain the prefix as it indexes the configuration.
-- `--save`: Enables the saving of output files to the specified --work-dir directory.
+- `--cai-mode`: Define the specific PatchFusion mode to use. For example, rn indicates n patches in mode r.
+- `--cfg-option`: Specify the input image directory. Maintain the prefix as it indexes the configuration. (To learn more about this, please refer to [MMEngine](https://mmengine.readthedocs.io/en/latest/advanced_tutorials/config.html). Basically, we use MMEngine to organize the configurations of this repo).
+- `--save`: Enable the saving of output files to the specified `--work-dir` directory (Make sure using it, otherwise there will be nothing saved).
 - `--work-dir`: Directory where the output files will be stored, including a colored depth map and a 16-bit PNG file (multiplier=256).
 - `--gray-scale`: If set, the output will be a grayscale depth map. If omitted, a color palette is applied to the depth map by default.
-- `--image-raw-shape`: Specifies the original dimensions of the input image. Default: `2160 3840`.
-- `--patch-split-num`: Defines how the input image is divided into smaller patches for processing. Default: `4 4`.
+- `--image-raw-shape`: Specify the original dimensions of the input image. Input images will be resized to this resolution before being processed by PatchFusion. Default: `2160 3840`.
+- `--patch-split-num`: Define how the input image is divided into smaller patches for processing. Default: `4 4`. ([Check more introductions](./docs/user_infer.md))
 
 ### Example Usage:
 Below is an example command that demonstrates how to run the inference process:

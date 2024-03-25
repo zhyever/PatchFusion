@@ -62,11 +62,16 @@ class PatchFusion(BaselinePretrain, PyTorchModelHubMixin):
         nn.Module.__init__(self)
         
         if isinstance(config, ConfigDict):
-            # convert a ConfigDict to a PretrainedConfig for hf saving
+            # NOTE:
+            # convert a MMengine ConfigDict to a huggingface PretrainedConfig
+            # it would be used in training and inference without network loading
             config = PretrainedConfig.from_dict(config.to_dict())
             config.load_branch = True
         else:
-            # used when loading patchfusion from hf model space
+            # NOTE:
+            # used when loading patchfusion from hf model space (inference with network in readme)
+            # PretrainedConfig.from_dict(**config) will raise an error (dict is saved as str in this case)
+            # we use MMengine ConfigDict to convert str to dict correctly here
             config = PretrainedConfig.from_dict(ConfigDict(**config).to_dict())
             config.load_branch = False
             config.coarse_branch.pretrained_resource = None
