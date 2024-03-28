@@ -184,7 +184,7 @@ class Trainer:
                     prog_bar.update()
 
             if self.runner_info.rank == 0 and self.config.debug == False and (idx + 1) % self.config.train_cfg.val_log_img_interval == False:
-                self.log_images(log_dict=log_dict, prefix="Val", min_depth=self.config.model.min_depth, max_depth=self.config.model.max_depth, step=self.val_step)
+                self.log_images(log_dict=log_dict, prefix="Val", min_depth=self.config.min_depth, max_depth=self.config.max_depth, step=self.val_step)
             
         # collect results from all ranks
         if isinstance(result, list):
@@ -265,7 +265,7 @@ class Trainer:
                     wandb.log(wdict)
    
             if self.runner_info.rank == 0 and self.config.debug == False and (idx + 1) % self.config.train_cfg.train_log_img_interval == False:
-                self.log_images(log_dict=log_dict, prefix="Train", min_depth=self.config.model.min_depth, max_depth=self.config.model.max_depth, step=self.train_step)
+                self.log_images(log_dict=log_dict, prefix="Train", min_depth=self.config.min_depth, max_depth=self.config.max_depth, step=self.train_step)
             
             if self.config.train_cfg.val_type == 'iter_base':
                 if (self.train_step + 1) % self.config.train_cfg.val_interval == 0 and (self.train_step + 1) >= self.config.train_cfg.get('eval_start', 0):
