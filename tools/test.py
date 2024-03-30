@@ -48,7 +48,7 @@ def parse_args():
         help='m1, m2, or rx')
     parser.add_argument(
         '--process-num',
-        type=int, default=4,
+        type=int, default=2,
         help='batchsize number for inference')
     parser.add_argument(
         '--tag',

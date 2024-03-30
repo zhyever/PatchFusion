@@ -136,6 +136,7 @@ Arguments Explanation (More details can be found [here](./docs/user_infer.md)):
 - `--gray-scale`: If set, the output will be a grayscale depth map. If omitted, a color palette is applied to the depth map by default.
 - `--image-raw-shape`: Specify the original dimensions of the input image. Input images will be resized to this resolution before being processed by PatchFusion. Default: `2160 3840`.
 - `--patch-split-num`: Define how the input image is divided into smaller patches for processing. Default: `4 4`. ([Check more introductions](./docs/user_infer.md))
+- `--process-num`: Batch size when processing the inference patchs. It will speed up the inference with the cost of gpu memory when increasing the number. Default: `2`.
 
 ### Example Usage:
 Below is an example command that demonstrates how to run the inference process:
