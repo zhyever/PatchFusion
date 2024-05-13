@@ -185,7 +185,7 @@ depth_prediction = F.interpolate(depth_prediction, image.shape[-2:])[0, 0].detac
 
 ## **User Training**
 
-### Please refer to [user_training](./docs/user_training.md) for more details. (TBD)
+### Please refer to [user_training](./docs/user_training.md) for more details.
 
 ## **Acknowledgement**
 
