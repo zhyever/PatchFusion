@@ -2,7 +2,7 @@
 <h1>PatchFusion </h1>
 <h3>An End-to-End Tile-Based Framework <br> for High-Resolution Monocular Metric Depth Estimation</h3>
 
-[![Website](assets/badge-website.svg)](https://zhyever.github.io/patchfusion/) [![Paper](https://img.shields.io/badge/arXiv-PDF-b31b1b)](https://arxiv.org/abs/2312.02284) [![Hugging Face Space](https://img.shields.io/badge/🤗%20Hugging%20Face-Space-yellow)](https://huggingface.co/spaces/zhyever/PatchFusion) [![Hugging Face Model](https://img.shields.io/badge/🤗%20Hugging%20Face-Model-yellow)](https://huggingface.co/zhyever/PatchFusion) [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+[![Website](assets/badge-website.svg)](https://zhyever.github.io/PatchFusion/) [![Paper](https://img.shields.io/badge/arXiv-PDF-b31b1b)](https://arxiv.org/abs/2312.02284) [![Hugging Face Space](https://img.shields.io/badge/🤗%20Hugging%20Face-Space-yellow)](https://huggingface.co/spaces/zhyever/PatchFusion) [![Hugging Face Model](https://img.shields.io/badge/🤗%20Hugging%20Face-Model-yellow)](https://huggingface.co/zhyever/PatchFusion) [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
 <a href="https://zhyever.github.io/">Zhenyu Li</a>, <a href="https://shariqfarooq123.github.io/">Shariq Farooq Bhat</a>, <a href="https://peterwonka.net/">Peter Wonka</a>. 
 <br>KAUST
@@ -21,7 +21,7 @@
 - 2024-03-21: Release refactored codes (main branch in this repo).
 - 2024-03-16: Release updated [huggingface demo](https://huggingface.co/spaces/zhyever/PatchFusion), which supports [Depth-Anything](https://github.com/LiheYoung/Depth-Anything).
 - 2024-03-04: Accepted to CVPR 2024.
-- 2023-12-12: Initially release [project page](https://zhyever.github.io/patchfusion/), [paper](https://arxiv.org/abs/2312.02284), [codes](certain_branch), and [demo](https://huggingface.co/spaces/zhyever/PatchFusion). Checkout `2d87adc9`.
+- 2023-12-12: Initially release [project page](https://zhyever.github.io/PatchFusion/), [paper](https://arxiv.org/abs/2312.02284), [codes](certain_branch), and [demo](https://huggingface.co/spaces/zhyever/PatchFusion). Checkout `2d87adc9`.
 
 
 ## **Repo Features**
