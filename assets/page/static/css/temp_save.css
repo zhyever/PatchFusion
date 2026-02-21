@@ -1,0 +1,25 @@
+.image-slider {
+    position: relative;
+    height: 30vh; /* This could be the height of your viewport or any other value */
+  }
+  
+  .image-slider .image {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* Offset the image by half its width and height */
+  }
+  
+#top-image {
+    position: absolute;
+  }
+  
+
+.slider {
+    width: 80%; /* Match the width of the images */
+    z-index: 2; /* Ensure the slider is above the images */
+    position: absolute;
+    top: 2%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* Offset the image by half its width and height */
+  }

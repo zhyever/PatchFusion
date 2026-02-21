@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="description"
+        content="PatchFusion: An End-to-End Tile-Based Framework for High-Resolution Monocular Metric Depth Estimation">
+
+  <meta name="keywords" content="PatchFusion, Depth Estimation, ZoeDepth, MiDaS, ScanRefer, PatchFusion: An End-to-End Tile-Based Framework for High-Resolution Monocular Metric Depth Estimation">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>PatchFusion: An End-to-End Tile-Based Framework for High-Resolution Monocular Metric Depth Estimation</title>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+
+    gtag('config', 'G-PYVRSFMDRL');
+  </script>
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+        rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+
+
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+  <link rel="stylesheet" href="./static/css/interactive_figures.css">
+  
+  <!-- <link rel="icon" href="./static/images/favicon.svg"> -->
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script src="./static/js/bulma-carousel.min.js"></script>
+  <script src="./static/js/bulma-slider.min.js"></script>
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <!-- <script src="./static/js/index.js"></script> -->
+
+  <script src="https://kit.fontawesome.com/e8d9e5563c.js" crossorigin="anonymous"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function(event) { 
+        //do work
+      
+      const copyButtonLabel = "Copy BibTex";
+
+      // use a class selector if available
+      let blocks = document.querySelectorAll("pre");
+      console.log(blocks)
+      
+      blocks.forEach((block) => {
+        // only add button if browser supports Clipboard API
+        if (navigator.clipboard) {
+          let button = document.createElement("button");
+      
+          button.innerText = copyButtonLabel;
+          button.classList.add("btn");
+          button.classList.add("btn-primary");
+          button.style.alignContent = "center";
+          button.style.textAlign = "center";
+          block.parentElement.appendChild(button);
+      
+          button.addEventListener("click", async () => {
+            await copyCode(block, button);
+          });
+        }
+      });
+      
+      async function copyCode(block, button) {
+        let code = block.querySelector("code");
+        let text = code.innerText;
+      
+        await navigator.clipboard.writeText(text);
+      
+        // visual feedback that task is completed
+        button.innerText = "BibTex Copied!";
+      
+        setTimeout(() => {
+          button.innerText = copyButtonLabel;
+        }, 1000);
+      }
+  });
+  </script>
+
+  <style>
+
+    pre[class*="language-"] {
+      position: relative;
+      overflow: auto;
+    
+      /* make space  */
+      margin: 5px 0;
+      padding: 1.75rem 0 1.75rem 1rem;
+      border-radius: 10px;
+    }
+    
+    pre[class*="language-"] button {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+    
+      font-size: 0.9rem;
+      padding: 0.15rem;
+     
+    
+      border: ridge 1px;
+      border-radius: 5px;
+      text-shadow: #c4c4c4 0 0 2px;
+    }
+    
+    pre[class*="language-"] button:hover {
+      cursor: pointer;  
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar" role="navigation" aria-label="main navigation">
+  <div class="navbar-brand">
+    <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+    </a>
+  </div>
+</nav>
+
+
+<section class="hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <h1 class="title is-1 publication-title">PatchFusion: An End-to-End Tile-Based Framework for High-Resolution Monocular Metric Depth Estimation</h1>
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">
+              <a href="https://zhyever.github.io/">Zhenyu Li</a>,  </span>
+            <span class="author-block">
+              <a href="https://shariqfarooq123.github.io/">Shariq Farooq Bhat</a>,  </span>
+            <span class="author-block">
+            <span class="author-block">
+              <a href="https://peterwonka.net/">Peter Wonka</a>
+            </span>
+            <!-- <span class="author-block">
+              Paper 4564
+            </span> -->
+          </div>
+
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">KAUST</span>
+          </div>
+
+          <!-- <div class="is-size-5 publication-authors">
+            <span class="author-block">XXXX 2023</span>
+          </div> -->
+
+          <div class="column has-text-centered">
+            <div class="publication-links">
+              <!-- Paper Link. -->
+              <span class="link-block">
+                <a href="https://arxiv.org/abs/2312.02284" 
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="ai ai-arxiv"></i>
+                  </span>
+                  <span>arXiv</span>
+                </a>
+              </span>
+              
+              <span class="link-block">
+                <a href="https://zhyever.github.io/patchfusion/images/paper.pdf" 
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fa-solid fa-paperclip"></i>
+                  </span>
+                  <span>Paper</span>
+                </a>
+              </span>
+              
+              <!-- Code Link. -->
+              <span class="link-block">
+                <a href="https://github.com/zhyever/PatchFusion"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fab fa-github"></i>
+                  </span>
+                  <span>Code</span>
+                  </a>
+              </span>
+              
+              <span class="link-block">
+                <a href="https://huggingface.co/spaces/zhyever/PatchFusion"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <!-- <i class="fab fa-github"></i> -->
+                      <!-- <i class="fa-solid fa-person-digging"></i> -->
+                      🤗
+                  </span>
+                  <span>Official Demo</span>
+                  </a>
+              </span>
+
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <!-- Abstract. -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Abstract</h2>
+        <div class="content has-text-justified">
+          <p>
+            Single image depth estimation is a foundational task in computer vision and generative modeling. 
+            However, prevailing depth estimation models grapple with accommodating the increasing resolutions commonplace in today's consumer cameras and devices. 
+            Existing high-resolution strategies show promise, but they often face limitations, ranging from error propagation to the loss of high-frequency details. 
+            We present <b>PatchFusion</b>, a novel tile-based framework with three key components to improve the current state of the art: 
+            <b>(1)</b> A patch-wise fusion network that fuses a globally-consistent coarse prediction with finer, inconsistent tiled predictions via high-level feature guidance, 
+            <b>(2)</b> A Global-to-Local (G2L) module that adds vital context to the fusion network, discarding the need for patch selection heuristics, 
+            and <b>(3)</b> A Consistency-Aware Training (CAT) and Inference (CAI) approach, emphasizing patch overlap consistency and thereby eradicating the necessity for post-processing. 
+            Experiments on UnrealStereo4K, MVS-Synth, and Middleburry 2014 demonstrate that our framework can generate high-resolution depth maps with intricate details. 
+            PatchFusion is independent of the base model for depth estimation. Notably, our framework built on top of SOTA <b><a href="https://github.com/isl-org/ZoeDepth/">ZoeDepth</a></b> brings improvements for a total of 17.3% and 29.4% in terms of the root mean squared error (RMSE) on UnrealStereo4K and MVS-Synth, respectively.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="section" id="dataset-browser">
+  <div class="container is-max-desktop">
+
+    <div class="columns is-centered">
+
+      <!-- Visual Effects. -->
+      <div class="column">
+        <div class="content" style="text-align:center;">
+          <h2 class="title is-3 has-text-centered">👀 Interactive Comparison</h2>
+          <p style="text-align:center; " class="has-text-centered">
+            Drag for interactive comparison
+          </p>
+
+          <p style="text-align:center; " class="has-text-centered">
+            <h2 class="title is-4">In-Domain Samples from UnrealStereo4K</h2>
+          </p>
+
+
+          <img src="images/interactive/case1.jpg" class="" style="width: 100%;margin-bottom: 2%;">
+          <iframe frameborder="0" class="juxtapose" style="width: 100%; height: 540px;" src="https://cdn.knightlab.com/libs/juxtapose/latest/embed/index.html?uid=a910dedc-8eb6-11ee-9ddd-3f41531135b6"></iframe>
+
+          <img src="images/interactive/case2.jpg" class="" style="width: 100%;margin-bottom: 2%;">
+          <iframe frameborder="0" class="juxtapose" style="width: 100%; height: 540px;" src="https://cdn.knightlab.com/libs/juxtapose/latest/embed/index.html?uid=b42ae3ee-8eb6-11ee-9ddd-3f41531135b6"></iframe>
+
+          
+          <p style="text-align:center; " class="has-text-centered">
+            <h2 class="title is-4">Zero-Shot Transfer (Out-of-Domain from Middleburry 2014)</h2>
+          </p>
+          <img src="images/interactive/case3.jpg" class="" style="width: 100%;margin-bottom: 2%;">
+          <iframe frameborder="0" class="juxtapose" style="width: 100%; height: 540px;" src="https://cdn.knightlab.com/libs/juxtapose/latest/embed/index.html?uid=c0454e94-8eb6-11ee-9ddd-3f41531135b6"></iframe>
+
+          <img src="images/interactive/case4.jpg" class="" style="width: 100%;margin-bottom: 2%;">
+          <iframe frameborder="0" class="juxtapose" style="width: 100%; height: 540px;" src="https://cdn.knightlab.com/libs/juxtapose/latest/embed/index.html?uid=cb5118a4-8eb6-11ee-9ddd-3f41531135b6"></iframe>
+
+          <!-- Another Style -->
+          <p style="text-align:center; " class="has-text-centered">
+            <h2 class="title is-4">Depth-Guided Text-to-Image Generation (Out-of-Domain from Internet)</h2>
+          </p>
+          
+          <p style="text-align:center; " class="has-text-centered">
+            <h2 class="title is-6">Input Image (from <a href="https://www.pexels.com/photo/rice-plant-growing-on-green-field-in-sunlight-6129010/">Quang Nguyen Vinh</a>):</h2> 
+          </p>
+          <img src="images/interactive/case5.jpg" class="" style="width: 100%;margin-bottom: 2%;">
+          <p style="text-align:center; " class="has-text-centered">
+            <h2 class="title is-6">Text Prompt: An oil painting of a rice field, with warm lighting and rich texture</h2>
+          </p>
+          <p style="text-align:center; " class="has-text-centered">
+            <h2 class="title is-6">Result</h2>
+          </p>
+          <iframe frameborder="0" class="juxtapose" style="width: 100%; height: 540px;" src="https://cdn.knightlab.com/libs/juxtapose/latest/embed/index.html?uid=0bc61290-8eb7-11ee-9ddd-3f41531135b6"></iframe>
+          <iframe frameborder="0" class="juxtapose" style="width: 100%; height: 540px;" src="https://cdn.knightlab.com/libs/juxtapose/latest/embed/index.html?uid=387763a2-8eb7-11ee-9ddd-3f41531135b6"></iframe>
+          
+          <p style="text-align:center; " class="has-text-centered">
+            <h2 class="title is-6">Input Image (from <a href="https://www.pexels.com/photo/bridge-near-eiffel-tower-10795999/">Jo Kassis</a>):</h2> 
+          </p>
+          <img src="images/interactive/case6.png" class="" style="width: 100%;margin-bottom: 2%;">
+          <p style="text-align:center; " class="has-text-centered">
+            <h2 class="title is-6">Text Prompt: An evening scene with the Eiffel Tower, the bridge under the glow of street lamps and a twilight sky</h2>
+          </p>
+          <p style="text-align:center; " class="has-text-centered">
+            <h2 class="title is-6">Result</h2>
+          </p>
+          <iframe frameborder="0" class="juxtapose" style="width: 100%; height: 540px;" src="https://cdn.knightlab.com/libs/juxtapose/latest/embed/index.html?uid=1f4dc34e-8eb7-11ee-9ddd-3f41531135b6"></iframe>
+          <iframe frameborder="0" class="juxtapose" style="width: 100%; height: 540px;" src="https://cdn.knightlab.com/libs/juxtapose/latest/embed/index.html?uid=2c44fd38-8eb7-11ee-9ddd-3f41531135b6"></iframe>
+        
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<section class="section">
+  <div class="container is-max-desktop">
+
+    <div class="columns is-centered">
+
+      <!-- Visual Effects. -->
+      <div class="column ">
+        <div class="content" style="text-align:center;">
+          <h2 class="title is-3 has-text-centered">🚀 Framework</h2>
+          <!-- <img src="images/teaser.jpg" class="" style="width: 80%;margin-bottom: 2%;"> -->
+          <video style="width: 95%; margin-bottom: 2%;" controls>
+            <source src="images/framework.mp4" type=video/mp4>
+          </video>
+          
+          <p style="text-align:center;" class="has-text-justified">
+            Most SOTA depth estimation architectures are bottlenecked by the resolution capabilities of their backbone, leading to blur depth predictions. For instance, ZoeDepth processes an input resolution of 384x512, VPD manages 480x480, and AiT is designed for 384x512. These figures pale in comparison to the resolutions offered by modern consumer cameras, such as the 45 Megapixel Canon EOS R5, the widely available 8K televisions, and even mobile devices like the iPhone 15, which boasts a 12MP Ultra Wide lens.
+          </p>
+          <p style="text-align:center;" class="has-text-justified">
+            In this work, we make effort to addresses the challenge of metric single image depth estimation for high-resolution inputs. We propose an end-to-end tile-based framework to achieve our goal.
+            It includes a <b>(1)</b> Coarse Network to provide global scale-aware estimation based on whole-image inpus, whereas high-frequency details are lost at the cost of global consistency, a <b>(2)</b> Fine Network to achieve patch-wise fine depth prediction with rich details, particularly at boundaries and intricate structure, but scale potentially inconsistent with the actual scene due to the segment property and lack of global information, and a <b>(3)</b> Guided Fusion Network with Global-to-Local (G2L) module to combine the best of two worlds.
+            We also propose the consistency-aware training and inference strategy to ensure patch-wise prediction consistency.
+          </p>
+        </div>
+        
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+      <!-- Visual Effects. -->
+      <div class="column">
+        <div class="content" style="text-align:center;">
+          <h2 class="title is-3 has-text-centered">🔥 Method</h2>
+          <p style="text-align:center;" class="has-text-justified">
+          We propose to adopt a neural network to fuse the coarse and fine depth maps, which outperforms the traditional post-optimization strategies.
+          While it could be implemented by simply learning a pix2pix U-Net, our key idea is to exploit the multi-scale features from the Coarse Network and Fine Network. 
+          We use two main components to achieve this transfer - the Global-to-Local Module (G2L) and the Guided Fusion Network.
+          </p>
+          <img src="images/fusion_net.jpg" class="" style="width: 80%;margin-bottom: 2%;">
+          <h2 class="title is-4"> Global-to-Local Module and Guided Fusion Network </h2>
+          <p style="text-align:center;" class="has-text-justified">
+          While the key insight of G2L is to apply the global-wise self attention for each-level feature from Coarse Network to ensemble crucial information for patch-wise scale-consistent prediction, 
+          we adopt the Swin Transformer Layer (STL) to preserve the global context while simultaneously alleviating GPU memory concerns.
+          </p>
+          <p style="text-align:center;" class="has-text-justified">
+          The Guided Fusion Network follows the U-Net design. The input comprises a concatenated ensemble of the cropped original image, the corresponding cropped coarse depth estimations from Coarse Network, and fine depth estimations from Fine Network.
+          After a lightweight encoder, we inject the guidance features to the skip connections and decoder layers.
+          </p>
+
+          <h2 class="title is-4">Consistency-Aware Training and Inference</h2>
+          <video style="width: 80%; margin-bottom: 2%;" controls>
+            <source src="images/cai.mp4" type=video/mp4>
+          </video>
+
+          <p style="text-align:center;" class="has-text-justified">
+          While our Guided Fusion Network with G2L makes scale-aware predictions, boundary inconsistencies still exist. Recognizing this gap, we introduce Consistency-Aware Training (CAT) and Inference (CAI) to ensure patch-wise depth prediction consistency.
+
+          Our methodology is based on the intuitive idea that overlapping regions between cropped patches from the same image should ideally produce consistent feature representations and depth predictions. We impose an \( L_2 \) loss on the overlapping regions of both the extracted image features and the depth predictions. While the idea of constraining the depth values is quite intuitive, the good results mainly stem from constraining the features.
+
+          During the inference processing of patches, the updated depth is concatenated with the cropped image and coarse depth map, as the input to our guided fusion network. This dynamic updating, coupled with a running mean, engenders a local ensemble approach, incrementally refining the depth estimations on the fly. This strategy alleviates the inconsistency and further boost the prediction accuracy.
+          </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="section" id="dataset-browser">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <!-- Visual Effects. -->
+        <div class="column">
+          <div class="content" style="text-align:center;">
+            <h2 class="title is-3 has-text-centered">🚀 Qualitative Results</h2>
+            <img src="images/u4k.jpg" class="" style="width: 100%;margin-bottom: 2%;">
+            <p style="text-align:center;" class="has-text-justified">
+            <b>Qualitative results on UnrealStereo4K (first two rows) and MVS-Synth (last two rows). Left to Right:</b> Input, BoostingDepth[27], Graph-DGSR[8], PatchFusion (Ours), GT.
+            </p>
+        </div>
+      </div>
+    </div>
+</section>
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+      <div class="column">
+        <div class="content">
+          <h2 class="title is-3  has-text-centered">🔥 Citation</h2>
+            <div class="language-css">
+            <pre style="">
+<code>
+@article{li2023patchfusion,
+  title={PatchFusion: An End-to-End Tile-Based Framework for High-Resolution Monocular Metric Depth Estimation}, 
+  author={Zhenyu Li and Shariq Farooq Bhat and Peter Wonka},
+  year={2023},
+  eprint={2312.02284},
+  archivePrefix={arXiv},
+  primaryClass={cs.CV}}</code></pre>
+            
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">
+    <div class="content has-text-centered">
+    </div>
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content">
+          <p>
+            This website is based on the <a href="https://nerfies.github.io/">Nerfies website template</a>, which is licensed under a
+            <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative
+            Commons Attribution-ShareAlike 4.0 International License</a>.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+
+<script src="./static/js/interactive_figures.js"></script>
+</body>
+</html>
